@@ -1,0 +1,647 @@
+/******************************************************************************
+  *, @viewport
+******************************************************************************/
+* + * {
+    margin-top: 1.5em;
+}
+
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+
+
+html,
+button,
+input,
+select,
+textarea {
+    color: #333;
+}
+
+nav ul li {
+    list-style-type: none;
+}
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;*
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+img {
+    vertical-align: middle;
+}
+
+fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.browsehappy {
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
+}
+
+
+/* ===== Initializr Styles ==================================================
+   Author: Jonathan Verrecchia - verekia.com/initializr/responsive-template
+   ========================================================================== */
+
+.wrapper {
+    width: 90%;
+    margin: 0 5%;
+}
+
+/* ===================
+    ALL: Orange Theme
+   =================== */
+
+.header-container {
+    border-bottom: 20px solid black;
+}
+
+.header-container,
+.footer-container,
+.main aside {
+    background: #006b9f;
+}
+
+.title {
+    color: white;
+}
+
+/* ==============
+    MOBILE: Menu
+   ============== */
+
+nav ul {
+    margin: 0;
+    padding: 0;
+}
+
+nav a {
+    display: block;
+    margin-bottom: 10px;
+    padding: 15px 0;
+
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+
+    color: white;
+}
+
+nav a:hover,
+nav a:visited {
+    color: white;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+/* ==============
+    MOBILE: Main
+   ============== */
+
+.main article h1 {
+    font-size: 2em;
+}
+
+.main aside {
+    color: white;
+    padding: 0px 5% 10px;
+}
+
+.footer-container footer {
+    color: white;
+    padding: 20px 0;
+}
+
+/* ===============
+    ALL: IE Fixes
+   =============== */
+
+.ie7 .title {
+    padding-top: 20px;
+}
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+
+   
+/******************************************************************************
+  SECTIONING AND STRUCTURING
+******************************
+  html, body, header, footer, nav, main, article, aside, section, p, pre,
+  blockquote, figure, figcaption, address, summary, details, div
+******************************************************************************/
+footer a {
+    color: white;
+}
+
+main {
+    -webkit-hyphens: auto;
+       -moz-hyphens: auto;
+        -ms-hyphens: auto;
+            hyphens: auto;
+}
+
+small {
+    font-size: 0.75rem;
+}
+
+pre, 
+samp { 
+    font-family: monospace, sans-serif; 
+}
+
+pre code {
+    display: inline-block;
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+}
+
+blockquote,
+q {
+    quotes: none;
+}
+
+blockquote mark, 
+q mark {
+    font-style: italic;
+}
+
+blockquote {
+    margin: 1.4rem;
+}
+
+figcaption {
+    font-style: italic;
+}
+
+address {
+    font-style: normal;
+}
+
+
+
+/******************************************************************************
+  LISTS
+*********
+  ul, ol, li, dl, dt, dd, menu, menuitem
+******************************************************************************/
+ul li {
+    list-style-type: square;
+}
+
+ul ul li {
+    list-style-type: circle;
+}
+
+ol {
+    list-style-type: decimal;
+}
+
+ol ol {
+    counter-reset: section;
+    list-style-type: none;
+}
+
+ol ol li::before {
+    counter-increment: section;
+    content: counters(section, ".") " ";
+}
+
+dd {
+    padding-left: 1rem;
+}
+
+
+
+/******************************************************************************
+  MEDIA
+*********
+  canvas, object, embed, img, audio, video, track, map, area, iframe
+******************************************************************************/
+img {
+    height: auto !important;
+    max-width: 100%;
+    width: auto !important;
+}
+
+
+
+/******************************************************************************
+  FORMS
+*********
+  form, fieldset, legend, label, input, button, select, optgroup, option, 
+  datalist, textarea, output
+******************************************************************************/
+input, 
+select {
+    vertical-align: middle;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* todo: set :hover and :focus */
+
+
+
+/******************************************************************************
+  TABLES
+**********
+  table, caption, colgroup, col, thead, tfoot, tbody, tr, th, td
+******************************************************************************/
+th,
+td {
+    border: 1px solid #333;
+    padding: 0.25rem;
+}
+
+th {
+    background-color: #006b9f;
+    color: #fff;
+}
+
+
+
+/******************************************************************************
+  PHRASING
+************
+  a, strong, em, b, i, u, s, sup, sub, small, abbr, dfn, mark, del, ins, q, 
+  cite, data, progress, time, meter, code, var, samp, kbd, keygen, bdi, bdo, 
+  ruby, rt, rp, span
+******************************************************************************/
+strong,
+b {
+    font-weight: bold;
+}
+
+abbr {
+    letter-spacing: 0.1em;
+}
+
+abbr[title], 
+dfn[title] {
+    border-bottom: 1px dotted;
+    cursor: help;
+}
+
+del {
+    text-decoration: line-through;
+    -webkit-text-decoration-color: #aaa;
+       -moz-text-decoration-color: #aaa;
+            text-decoration-color: #aaa;
+}
+
+del.edit-block {
+    border-left-color: #91081f;
+    color: #aaa;
+    text-decoration: none;
+}
+
+ins {
+    border-bottom: 1px solid #ccc;
+    color: #388807;
+    text-decoration: none;
+}
+
+ins::before {
+    content: ' (Update) ';
+    display: inline;
+    font-style: italic;
+}
+
+ins[datetime]::before {
+    content: ' (Update ' attr(datetime) ') ';
+}
+
+ins p {
+    display: inline;
+}
+
+ins.edit-block {
+    border-bottom: none;
+    border-left-color: #47ad09;
+    color: #444;
+    margin-bottom: 1.4rem;
+}
+
+code,
+var,
+.line-numbers,
+.line-pre,
+.terminal { 
+    font: 14px/1.3 'Source Code Pro', Consolas, monospace !important;
+}
+
+code,
+var {
+    background-color: rgba(0,107,159,0.04);
+    border: 1px solid #006b9f;
+    border-radius: 2px;
+    color: #006b9f;
+    margin: 0 0.15em;
+    padding: 0 0.3em;
+}
+
+kbd {
+    background-color: #f7f7f7;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2), 0 0 0 2px #fff inset;
+    color: #333;
+    display: inline-block;
+    font-size: 12px;
+    font-family: sans-serif;
+    line-height: 1.4;
+    margin: 0 0.1em;
+    padding: 0.1em 0.6em;
+    text-shadow: 0 1px 0 #fff;
+    white-space: nowrap;
+}
+
+
+/******************************************************************************
+  MISCELLANEOUS
+*****************
+  hr
+******************************************************************************/
+hr {
+    border: 0;
+    border-top: 1px solid #006b9f;
+    display: block;
+    height: 1px;
+    margin: 1rem 0;
+    padding: 0;
+}
+
+::-moz-selection {
+    background: #006b9f;
+    color: #fff;
+}
+
+::selection {
+    background-color: #006b9f;
+    color: #fff;
+}
+
+
+
+/******************************************************************************
+  HELPER CLASSES
+******************************************************************************/
+.clearfix:before,
+.clearfix:after {
+    content: " ";
+    display: table;
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+.clearfix {
+    *zoom: 1;
+}
+
+.edit-block {
+    border-left: 0.5rem solid;
+    display: block;
+    margin-left: -1rem;
+    padding-left: 0.5rem;
+}
+
+.float-left {
+    float: left;
+}
+
+.float-right {
+    float: right;
+}
+
+.font-style-normal {
+    font-style: normal;
+}
+
+.hidden {
+    display: none !important;
+    visibility: hidden;
+}
+
+.invisible {
+    visibility: hidden;
+}
+
+.no-margin,
+.no-margin li {
+    margin: 0;
+}
+
+.right {
+    display: block;
+    float: right;
+}
+
+.small-caps {
+    -webkit-font-feature-settings: 'smcp';
+       -moz-font-feature-settings: 'smcp';
+            font-feature-settings: 'smcp';
+}
+
+.terminal {
+    border: 1px solid #000;
+    background-color: #333;
+    color: #fff;
+}
+
+.uppercase {
+    -webkit-font-feature-settings: 'lnum' 1;
+       -moz-font-feature-settings: 'lnum' 1;
+            font-feature-settings: 'lnum' 1;
+    text-transform: uppercase;
+}
+
+.visuallyhidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    width: auto;
+}
+
+
+
+/* ==========================================================================
+   Media Queries
+   ========================================================================== */
+
+@media only screen and (min-width: 480px) {
+
+/* ====================
+    INTERMEDIATE: Menu
+   ==================== */
+
+    nav a {
+        float: left;
+        margin-bottom: 0;
+        padding-left: 30px;
+    }
+
+    nav li:first-child a {
+        margin-left: 0;
+    }
+
+    nav li:last-child a {
+        margin-right: 0;
+    }
+
+/* ========================
+    INTERMEDIATE: IE Fixes
+   ======================== */
+
+    nav ul li {
+        display: inline;
+    }
+
+    .oldie nav a {
+        margin: 0 0.7%;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+
+/* ============
+    WIDE: Menu
+   ============ */
+
+    .title {
+        float: left;
+    }
+
+    nav {
+        float: right;
+        width: 38%;
+    }
+
+/* ============
+    WIDE: Main
+   ============ */
+
+    .main article {
+        float: left;
+        width: 57%;
+    }
+
+    .main aside {
+        float: right;
+        width: 28%;
+    }
+}
+
+@media only screen and (min-width: 1140px) {
+
+/* ===============
+    Maximal Width
+   =============== */
+
+    .wrapper {
+        width: 1026px; /* 1140px - 10% for margins */
+        margin: 0 auto;
+    }
+}
+
+/* ==========================================================================
+   Print styles
+   ========================================================================== */
+
+@media print {
+    * {
+        background: transparent !important;
+        color: #000 !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+
+    a[href^="javascript:"]:after,
+    a[href^="#"]:after {
+        content: "";
+    }
+
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
+
+    img {
+        max-width: 100% !important;
+    }
+
+    @page {
+        margin: 0.5cm;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    h2,
+    h3 {
+        page-break-after: avoid;
+    }
+}
