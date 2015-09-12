@@ -1,0 +1,76 @@
+game
+- game id
+- name
+- bgg id
+
+user
+- user id
+- name
+
+user-game
+- user id
+- game id
+- wins
+- losses
+- differential (wins - losses, not actually stored in db)
+- position
+- locked? (top of the tree)
+- ranked this iteration?
+
+user-game-matchup
+- winner
+- loser
+
+
+
+- game 1 is ranked above game 2 if it has won a comparison, either directly or commutatively
+- game 1 is positioned above game 2 if it's current position on the list is higher than game 2's
+
+- if game 1 of this comparison was game 2 last comparison (or game 2 was game 1) keep it in the same position on screen
+
+- matchups.map(function(item){if (item.winner == 1) return item.loser }).filter(function(item){return item;})
+
+
+main:
+    loop user-games ordered by current position:
+        if <= 1 games exit
+        get first 2 not ranked this iteration
+            compare
+    
+    compare_list(initial winner user-games)
+    compare_list(initial loser user-games)
+    
+    loop until all locked:
+        loop unranked this loop:
+    
+
+check_for_locks:
+    if a game is ranked above all unlocked games, lock it
+    if a game is ranked below all unlocked games, lock it
+
+compare (1, 2):
+    get user input
+    winner gets 1 win
+    loser gets 1 loss
+    reorder
+    check_for_locks
+
+compare_list (list):
+    loop list:
+        if remaining = 0 exit
+        if remaining = 1
+            compare 1, last winner that isn't redundant
+        if remaining >= 2
+            compare 1, first 2 that isn't redundant
+        
+        both get ranked this iteration = true
+
+reorder (winner, loser):
+    if winner.position > loser.position
+        if differential (winner.wins - winner.losses) is positive, winner.position increases by differential, as long as it does not move past any games that have been ranked above
+        
+        if differential (loser.wins - loser.losses) is negative, loser.position decreases by differential, as long as it does not move past any games that have been ranked below
+    else
+        winner.position = loser.position
+        loop user-games with position <= winner.position
+            position += 1
