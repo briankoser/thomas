@@ -143,7 +143,6 @@ var getGames = function() {
 }
 
 
-
 /* main */
 var games_array = getGames();
 var games_object = new games(games_array);
@@ -162,35 +161,19 @@ games_object.contestAll();
 
 
 
-
+/*
 getAllRankedLower:
     if none ranked lower
         return
     else
         return getAllRankedLower(lowerRanked)
+*/
 
 
 
-var getAllRankedLower = function(matchups, id, subordinates) {
-    var lower = matchups.map(function(item){
-        if (item.winner == id) 
-            return item.loser;
-    }).filter(function(item){
-        return item;
-    });
-    
-    if (lower.length == 0) {
-        subordinates.push(id);
-        return subordinates;
-    }
-    else
-        return lower.map(function(item){
-            getAllRankedLower(matchups, item, subordinates);
-        });
-}
-
-g_losers = []
-var getAllLosers = function (matchups, id) {
+//g_losers = []
+var getAllRankedLower = function (matchups, id, includeId) {
+    console.log('getAllRankedLower: '+id)
     var losers = matchups.map(function(item){
         if (item.winner == id) 
             return item.loser;
@@ -201,44 +184,30 @@ var getAllLosers = function (matchups, id) {
     //g_losers.push(id);
     
     if (losers.length == 0) {
-        return [id];
+        // return includeId ? [id] : [];
+        if (includeId)
+            return [id];
+        else
+            return [];
     }
     else {
-        return losers.map(function(item) {
-            return getAllLosers(matchups, item);
-        });
-    }
-}
-
-
-
-
-g_losers = []
-var getAllLosers = function (matchups, id) {
-    var losers = matchups.map(function(item){
-        if (item.winner == id) 
-            return item.loser;
-    }).filter(function(item){
-        return item;
-    });
-    
-    //g_losers.push(id);
-    
-    if (losers.length == 0) {
-        return [id];
-    }
-    else {
-        losers.map(function(item) {
-            return getAllLosers(matchups, item);
+        var children = losers.map(function(item) {
+            return getAllRankedLower(matchups, item, true);
         });
         
-        losers.push(id);
+        var flatChildren = _.flatten(children);
         
-        return losers;
+        losers = losers.concat(flatChildren);
+        
+        if(includeId)
+            losers.push(id);
+        
+        return _.uniq(losers);
     }
 }
 
 
+/*
 
 
 
@@ -247,12 +216,6 @@ var getAllLosers = function (matchups, id) {
 
 
 
-
-function unique(a) {
-    return a.sort().filter(function(item, pos, ary) {
-        return !pos || item != ary[pos - 1];
-    })
-}
 
 var matchups = [];
 matchups.push({'winner': 1, 'loser': 2});
@@ -289,29 +252,5 @@ if(losers1.length > 0)
     }
 }
 
-var losers = unique(losers1.concat(losers2));
-
-
-
-
-
-var flatten = function(input, shallow, strict, output) {
-    output = output || [];
-    var idx = output.length;
-    for (var i = 0, length = getLength(input); i < length; i++) {
-      var value = input[i];
-      if (isArrayLike(value) && (_.isArray(value) || _.isArguments(value))) {
-        //flatten current level of array or arguments object
-        if (shallow) {
-          var j = 0, len = value.length;
-          while (j < len) output[idx++] = value[j++];
-        } else {
-          flatten(value, shallow, strict, output);
-          idx = output.length;
-        }
-      } else if (!strict) {
-        output[idx++] = value;
-      }
-    }
-    return output;
-  };
+var losers = _.uniq(losers1.concat(losers2));
+*/
