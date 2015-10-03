@@ -38,7 +38,16 @@ var games = function(list) {
     // private
     /*var*/ game_matchups = new matchups();
     
-    
+    var compareGames = function(game1, game2) {
+        if (game1.position < game2.position)
+            return -1;
+        
+        if (game1.position > game2.position)
+            return 1;
+      
+        return 0;
+    }
+
     var isFirstGameBetter = function(game1, game2) {
         // todo: get user input
         
@@ -72,7 +81,7 @@ var games = function(list) {
             games = reposition(games, gameIndex2, gameIndex1);
         }
         
-        // check_for_locks
+        // todo: check_for_locks
         
         return games;
     }
@@ -84,16 +93,16 @@ var games = function(list) {
         if(winnerPosition < loserPosition) {
             if(games[winnerIndex].differential() > 0)
             {
-                // winner.position increases by differential, as long as it does not move past any games that have been ranked above
+                // todo: winner.position increases by differential, as long as it does not move past any games that have been ranked above
             }
             
             if(games[loserIndex].differential() < 0)
             {
-                // loser.position decreases by differential, as long as it does not move past any games that have been ranked below
+                // todo: loser.position decreases by differential, as long as it does not move past any games that have been ranked below
             }
         }
         else {
-            // Array.prototype.map() only supported in IE9+
+            // todo: Array.prototype.map() only supported in IE9+
             games.map(function(item){
                 if(item.position >= loserPosition && item.position < winnerPosition)
                     item.position += 1;
@@ -241,16 +250,6 @@ matchups.prototype.toString = function() {
 
 
 /* methods */
-var compareGames = function(game1, game2) {
-  if (game1.position < game2.position)
-    return -1;
-    
-  if (game1.position > game2.position)
-    return 1;
-  
-  return 0;
-}
-
 var getGames = function() {
     // todo: get user input
     
@@ -274,35 +273,3 @@ games_object.toString();
 games_object.sortList();
 games_object.toString();
 games_object.contestAll();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-var matchups = [];
-matchups.push({'winner': 1, 'loser': 2});
-matchups.push({'winner': 3, 'loser': 4});
-matchups.push({'winner': 5, 'loser': 6});
-matchups.push({'winner': 7, 'loser': 8});
-matchups.push({'winner': 9, 'loser': 10});
-
-matchups.push({'winner': 1, 'loser': 3});
-matchups.push({'winner': 5, 'loser': 7});
-matchups.push({'winner': 5, 'loser': 9});
-matchups.push({'winner': 2, 'loser': 4});
-matchups.push({'winner': 6, 'loser': 8});
-matchups.push({'winner': 6, 'loser': 10});
-*/
