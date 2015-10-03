@@ -161,19 +161,10 @@ games_object.contestAll();
 
 
 
-/*
-getAllRankedLower:
-    if none ranked lower
-        return
-    else
-        return getAllRankedLower(lowerRanked)
-*/
 
 
 
-//g_losers = []
 var getAllRankedLower = function (matchups, id, includeId) {
-    console.log('getAllRankedLower: '+id)
     var losers = matchups.map(function(item){
         if (item.winner == id) 
             return item.loser;
@@ -181,23 +172,15 @@ var getAllRankedLower = function (matchups, id, includeId) {
         return item;
     });
     
-    //g_losers.push(id);
-    
     if (losers.length == 0) {
-        // return includeId ? [id] : [];
-        if (includeId)
-            return [id];
-        else
-            return [];
+        return includeId ? [id] : [];
     }
     else {
         var children = losers.map(function(item) {
             return getAllRankedLower(matchups, item, true);
         });
         
-        var flatChildren = _.flatten(children);
-        
-        losers = losers.concat(flatChildren);
+        losers = losers.concat(_.flatten(children));
         
         if(includeId)
             losers.push(id);
@@ -206,17 +189,33 @@ var getAllRankedLower = function (matchups, id, includeId) {
     }
 }
 
+var getAllRankedHigher = function (matchups, id, includeId) {
+    var winners = matchups.map(function(item){
+        if (item.loser == id) 
+            return item.winner;
+    }).filter(function(item){
+        return item;
+    });
+    
+    if (winners.length == 0) {
+        return includeId ? [id] : [];
+    }
+    else {
+        var parents = winners.map(function(item) {
+            return getAllRankedHigher(matchups, item, true);
+        });
+        
+        winners = winners.concat(_.flatten(parents););
+        
+        if(includeId)
+            winners.push(id);
+        
+        return _.uniq(winners);
+    }
+}
+
 
 /*
-
-
-
-
-
-
-
-
-
 var matchups = [];
 matchups.push({'winner': 1, 'loser': 2});
 matchups.push({'winner': 3, 'loser': 4});
@@ -230,27 +229,4 @@ matchups.push({'winner': 5, 'loser': 9});
 matchups.push({'winner': 2, 'loser': 4});
 matchups.push({'winner': 6, 'loser': 8});
 matchups.push({'winner': 6, 'loser': 10});
-
-var parent = 1;
-var losers1 = [];
-var losers2 = [];
-for(var i = 0; i < matchups.length; i++)
-{
-    if(matchups[i].winner == parent)
-        losers1.push(matchups[i].loser);
-}
-
-if(losers1.length > 0)
-{
-    for(var i = 0; i < losers1.length; i++)
-    {
-        for(var j = 0; j < matchups.length; j++)
-        {
-            if(losers1[i] == matchups[j].winner)
-                losers2.push(matchups[j].loser);
-        }
-    }
-}
-
-var losers = _.uniq(losers1.concat(losers2));
 */
