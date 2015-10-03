@@ -1,4 +1,12 @@
-/* classes */
+/**************************************************************
+    CLASSES
+**************************************************************/
+/**
+ * A board game with rank information.
+ * @class
+ * @param {int} id - A unique id.
+ * @param {position} - The current position in the ranked list.
+ */
 var game = function(id, position) {
     this.id = id;
     this.position = position;
@@ -11,13 +19,24 @@ var game = function(id, position) {
         return wins - losses;
     }
 }
+/**
+ * ToString for a game.
+ * @method
+ */
 game.prototype.toString = function() {
     return this.id;
 }
 
+
+
+/**
+ * A collection of games.
+ * @class
+ * @param {array} list - An array of games.
+ */
 var games = function(list) {
     // private
-    /*var*/ matchups = [];
+    /*var*/ game_matchups = new matchups();
     
     
     var isFirstGameBetter = function(game1, game2) {
@@ -29,11 +48,9 @@ var games = function(list) {
     }
     
     var logMatchup = function(winner, loser) {
-        var matchup = {};
-        matchup.winner = winner;
-        matchup.loser = loser;
+        var match = new matchup(winner, loser);
         
-        matchups.push(matchup);
+        game_matchups.add(match);
     }
     
     var rankGames = function(games, gameIndex1, gameIndex2) {
@@ -109,10 +126,115 @@ var games = function(list) {
             //this.sortList();
         }
         
-        console.log(matchups);
+        console.log(game_matchups.toString());
     }
 }
-games.prototype.toString = function() {
+/**
+ * ToString for games.
+ * @method
+ */
+games.prototype.toString = function () {
+    return this.list.toString();
+}
+
+
+
+/**
+ * A matchup of two games.
+ * @class
+ * @param {string} winner - The winner of the matchup.
+ * @param {string} loser - The loser of the matchup.
+ */
+var matchup = function (winner, loser) {
+    this.winner = winner;
+    this.loser = loser;
+}
+/**
+ * ToString for a matchup.
+ * @method
+ */
+matchup.prototype.toString = function () {
+    return this.winner + '>' + this.loser;
+}
+
+
+
+/**
+ * A collection of matchups.
+ * @class
+ */
+var matchups = function () {
+    this.list = [];
+
+    this.add = function (matchup) {
+        this.list.push(matchup);
+    }
+    
+    this.getAllRankedLower = function (id, includeId) {
+        if (includeId == undefined)
+            includeId = false;
+        
+        var self = this;
+        
+        var losers = self.list.map(function(item){
+            if (item.winner == id) 
+                return item.loser;
+        }).filter(function(item){
+            return item;
+        });
+        
+        if (losers.length == 0) {
+            return includeId ? [id] : [];
+        }
+        else {
+            var children = losers.map(function(item) {
+                return self.getAllRankedLower(item, true);
+            });
+            
+            losers = losers.concat(_.flatten(children));
+            
+            if(includeId)
+                losers.push(id);
+            
+            return _.uniq(losers);
+        }
+    }
+
+    this.getAllRankedHigher = function (id, includeId) {
+        if (includeId == undefined)
+            includeId = false;
+        
+        var self = this;
+        
+        var winners = self.list.map(function(item){
+            if (item.loser == id) 
+                return item.winner;
+        }).filter(function(item){
+            return item;
+        });
+        
+        if (winners.length == 0) {
+            return includeId ? [id] : [];
+        }
+        else {
+            var parents = winners.map(function(item) {
+                return self.getAllRankedHigher(item, true);
+            });
+            
+            winners = winners.concat(_.flatten(parents));
+            
+            if(includeId)
+                winners.push(id);
+            
+            return _.uniq(winners);
+        }
+    }
+}
+/**
+ * ToString for matchups.
+ * @method
+ */
+matchups.prototype.toString = function() {
     return this.list.toString();
 }
 
@@ -143,7 +265,9 @@ var getGames = function() {
 }
 
 
-/* main */
+/**************************************************************
+    MAIN
+**************************************************************/
 var games_array = getGames();
 var games_object = new games(games_array);
 games_object.toString();
@@ -164,55 +288,7 @@ games_object.contestAll();
 
 
 
-var getAllRankedLower = function (matchups, id, includeId) {
-    var losers = matchups.map(function(item){
-        if (item.winner == id) 
-            return item.loser;
-    }).filter(function(item){
-        return item;
-    });
-    
-    if (losers.length == 0) {
-        return includeId ? [id] : [];
-    }
-    else {
-        var children = losers.map(function(item) {
-            return getAllRankedLower(matchups, item, true);
-        });
-        
-        losers = losers.concat(_.flatten(children));
-        
-        if(includeId)
-            losers.push(id);
-        
-        return _.uniq(losers);
-    }
-}
 
-var getAllRankedHigher = function (matchups, id, includeId) {
-    var winners = matchups.map(function(item){
-        if (item.loser == id) 
-            return item.winner;
-    }).filter(function(item){
-        return item;
-    });
-    
-    if (winners.length == 0) {
-        return includeId ? [id] : [];
-    }
-    else {
-        var parents = winners.map(function(item) {
-            return getAllRankedHigher(matchups, item, true);
-        });
-        
-        winners = winners.concat(_.flatten(parents););
-        
-        if(includeId)
-            winners.push(id);
-        
-        return _.uniq(winners);
-    }
-}
 
 
 /*
