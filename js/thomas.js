@@ -146,8 +146,7 @@ var games = function(list) {
             }
         }
         else {
-            // todo: Array.prototype.map() only supported in IE9+
-            games.map(function(item){
+            _.map(games, function(item){
                 if(item.position >= loserPosition && item.position < winnerPosition)
                     item.position += 1;
             });
