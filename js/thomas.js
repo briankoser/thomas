@@ -118,14 +118,10 @@ var games = function(list) {
     // public
     this.list = list;
     
-    this.sortList = function() {
-        this.list.sort(compareGames);
-    }
-    
     this.contestAll = function() {
         if(this.list.length <= 1)
         {
-            // todo: lock all
+            this.lockList();
             return;
         }
         
@@ -136,6 +132,24 @@ var games = function(list) {
         }
         
         console.log(game_matchups.toString());
+    }
+    
+    this.lock = function(id) {
+        var list_local = this.list;
+        var game_local =  _.find(list_local, function(game) {return game.id == id});
+        var index = _.indexOf(list_local, game_local);
+        
+        game_local.locked = true;
+        list_local[index] = game_local;
+        this.list = list_local;
+    }
+    
+    this.lockList = function() {
+        _.each(this.list, this.lock, this);
+    }
+    
+    this.sortList = function() {
+        this.list.sort(compareGames);
     }
 }
 /**
@@ -249,7 +263,9 @@ matchups.prototype.toString = function() {
 
 
 
-/* methods */
+/**************************************************************
+    METHODS
+**************************************************************/
 var getGames = function() {
     // todo: get user input
     
