@@ -134,13 +134,34 @@ var games = function(list) {
         var winnerPosition = games[winnerIndex].position;
         var loserPosition = games[loserIndex].position;
         
+        // if winner is already ranked above loser
         if(winnerPosition < loserPosition) {
-            if(games[winnerIndex].differential() > 0)
+            var winner = games[winnerIndex];
+            var loser = games[loserIndex];
+            var gamesRankedAboveWinner = getAllRankedHigher(winner.id);
+            var gamesRankedBelowLoser = getAllRankedLower(loser.id);
+            
+            if(winner.differential() > 0)
             {
-                // todo: winner.position increases by differential, as long as it does not move past any games that are locked or that have been ranked above
+                var newPosition = winner.position - winner.differential();
+                
+                for(var i = winnerPosition - 1; i >= newPosition; i--)
+                {
+                    if(games[i].locked || _.contains(gamesRankedAboveWinner, games[i].id))
+                    {
+                        newPosition = i;
+                        break;
+                    }
+                    else
+                    {
+                        games[i].position += 1;
+                    }
+                }
+                
+                games[winnerIndex].position = newPosition;
             }
             
-            if(games[loserIndex].differential() < 0)
+            if(loser.differential() < 0)
             {
                 // todo: loser.position decreases by differential, as long as it does not move past any games that are locked or that have been ranked below
             }
