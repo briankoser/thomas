@@ -188,9 +188,8 @@ var games = function(list) {
     // public
     this.list = list;
     
-    this.contestAll = function() {
-        if(this.list.length <= 1)
-        {
+    this.flickchartSort = function() {
+        if(this.list.length <= 1) {
             lockList();
             return;
         }
@@ -202,6 +201,10 @@ var games = function(list) {
         }
         
         console.log(game_matchups.toString());
+    }
+    
+    this.quickSort = function() {
+        
     }
     
     this.sortList = function() {
@@ -344,4 +347,4 @@ var games_object = new games(games_array);
 games_object.toString();
 games_object.sortList();
 games_object.toString();
-games_object.contestAll();
+games_object.flickchartSort();
