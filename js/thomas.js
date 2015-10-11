@@ -73,12 +73,10 @@ var games = function(list) {
             var gamesRankedLowerCount = game_matchups.getAllRankedLower(games[i].id).length;
             var gamesUnlockedExcludingCurrentGameCount = unlockedList().length - 1;
             
-            if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount)
-            {
+            if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
                 games = lock(games, i);
             }
-            else
-            {
+            else {
                 break;
             }
         }
@@ -88,12 +86,10 @@ var games = function(list) {
             var gamesRankedHigherCount = game_matchups.getAllRankedHigher(games[i].id).length;
             var gamesUnlockedExcludingCurrentGameCount = unlockedList().length - 1;
             
-            if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount)
-            {
+            if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
                 games = lock(games, i);
             }
-            else
-            {
+            else {
                 break;
             }
         }
@@ -110,15 +106,13 @@ var games = function(list) {
     var rankGames = function(games, gameIndex1, gameIndex2) {
         var isFirstBetter = isFirstGameBetter(games[gameIndex1], games[gameIndex2]);
         
-        if(isFirstBetter)
-        {
+        if(isFirstBetter) {
             games[gameIndex1].wins += 1;
             games[gameIndex2].losses += 1;
             logMatchup(games[gameIndex1].id, games[gameIndex2].id);
             games = reposition(games, gameIndex1, gameIndex2);
         }
-        else
-        {
+        else {
             games[gameIndex1].losses += 1;
             games[gameIndex2].wins += 1;
             logMatchup(games[gameIndex2].id, games[gameIndex1].id);
@@ -141,19 +135,15 @@ var games = function(list) {
             var gamesRankedAboveWinner = getAllRankedHigher(winner.id);
             var gamesRankedBelowLoser = getAllRankedLower(loser.id);
             
-            if(winner.differential() > 0)
-            {
+            if(winner.differential() > 0) {
                 var newPosition = winner.position - winner.differential();
                 
-                for(var i = winnerPosition - 1; i >= newPosition; i--)
-                {
-                    if(games[i].locked || _.contains(gamesRankedAboveWinner, games[i].id))
-                    {
+                for(var i = winnerPosition  - 1; i >= newPosition; i--) {
+                    if(games[i].locked || _.contains(gamesRankedAboveWinner, games[i].id)) {
                         newPosition = i + 1;
                         break;
                     }
-                    else
-                    {
+                    else {
                         games[i].position += 1;
                     }
                 }
@@ -165,15 +155,12 @@ var games = function(list) {
             {
                 var newPosition = loser.position - loser.differential();
                 
-                for(var i = loserPosition + 1; i <= newPosition; i++)
-                {
-                    if(games[i].locked || _.contains(gamesRankedBelowLoser, games[i].id))
-                    {
+                for(var i = loserPosition + 1; i <= newPosition; i++) {
+                    if(games[i].locked || _.contains(gamesRankedBelowLoser, games[i].id)) {
                         newPosition = i - 1;
                         break;
                     }
-                    else
-                    {
+                    else {
                         games[i].position -= 1;
                     }
                 }
@@ -182,7 +169,7 @@ var games = function(list) {
             }
         }
         else {
-            _.map(games, function(item){
+            _.map(games, function(item) {
                 if(item.position >= loserPosition && item.position < winnerPosition)
                     item.position += 1;
             });
@@ -208,8 +195,7 @@ var games = function(list) {
             return;
         }
         
-        for(var i = 0; i < this.list.length; i += 2)
-        {
+        for(var i = 0; i < this.list.length; i += 2) {
             // todo: eliminate redundant sorts
             this.list = rankGames(this.list, i, i + 1);
             //this.sortList();
