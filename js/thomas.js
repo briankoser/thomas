@@ -13,7 +13,7 @@ var game = function(id, position) {
     this.wins = 0;
     this.losses = 0;
     this.locked = false;
-    this.ranked = false;
+    this.rankedThisIteration = false;
     
     var differential = function() {
         return wins - losses;
@@ -119,6 +119,8 @@ var games = function(list) {
             games = reposition(games, gameIndex2, gameIndex1);
         }
         
+        games[gameIndex1].rankedThisIteration = true;
+        games[gameIndex2].rankedThisIteration = true;
         games = lockCompletelySortedGames(games);
         
         return games;
@@ -188,19 +190,52 @@ var games = function(list) {
     // public
     this.list = list;
     
+    this.doesMatchupRemain = function() {
+        return _.filter(list, function(game) {
+            return !game.rankedThisIteration && !game.locked;
+        }).length >= 2;
+    }
+    
     this.flickchartSort = function() {
-        if(this.list.length <= 1) {
+        var self = this;
+        
+        // if there's only one game to sort, it is already sorted
+        if(self.list.length <= 1) {
             lockList();
             return;
         }
         
-        for(var i = 0; i < this.list.length; i += 2) {
-            // todo: eliminate redundant sorts
-            this.list = rankGames(this.list, i, i + 1);
-            //this.sortList();
+        while(self.doesMatchupRemain()) {
+            var game1 = self.getFirstNotLockedOrRanked();
+            var game1Index = _.indexOf(self.list, game1);
+            var game2 = self.getOpponent(self.list, game1);
+            var game2Index = _.indexOf(self.list, game2);
+            
+            self.list = rankGames(self.list, game1Index, game2Index);
+            self.sortList();
         }
         
         console.log(game_matchups.toString());
+    }
+    
+    this.getFirstNotLockedOrRanked = function() {
+        return _.find(list, function(game) {
+            return !game.locked && !game.rankedThisIteration;
+        });
+    }
+    
+    this.getOpponent = function(games, game1) {
+        var game2 = _.find(games, function(game) {
+            return !game.locked && !game.rankedThisIteration && game.id !== game1.id && !game_matchups.isRanked(game1.id, game.id);
+        });
+        
+        if (game2 === undefined) {
+            var game2 = _.find(games, function(game) {
+                return !game.locked && game.id !== games[game1Index].id && !game_matchups.isRanked(game1.id, game.id);
+            });
+        }
+        
+        return game2;
     }
     
     this.quickSort = function() {
@@ -311,6 +346,16 @@ var matchups = function () {
             return _.uniq(winners);
         }
     }
+    
+    this.isRanked = function (gameId1, gameId2) {
+        var self = this;
+        
+        var higher = self.getAllRankedHigher(gameId1);
+        var lower = self.getAllRankedLower(gameId1);
+        var all = higher.concat(lower);
+        
+        return _.contains(all, gameId2);
+    }
 }
 /**
  * ToString for matchups.
@@ -340,7 +385,7 @@ var getGames = function() {
 
 
 /**************************************************************
-    MAIN
+    TEMP MAIN
 **************************************************************/
 var games_array = getGames();
 var games_object = new games(games_array);
