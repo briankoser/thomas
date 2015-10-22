@@ -6,10 +6,12 @@
  * @class
  * @param {int} id - A unique id.
  * @param {int} position - The current position in the ranked list.
+ * @param {string} name - The name of the game.
  */
-var game = function(id, position) {
+var game = function(id, position, name) {
     this.id = id;
     this.position = position;
+    this.name = name;
     this.wins = 0;
     this.losses = 0;
     this.locked = false;
@@ -68,13 +70,10 @@ var games = function(list) {
         
         console.log('contest: ' + game1 + ' vs ' + game2);
         
-        // todo: Gonna need to use promise pipelines since these events are raised after returning from this function
-        promptUser("Which game do you prefer?", [ 
-            { text: game1, click: function() { game1.wins++; } }, 
-            { text: game2, click: function() { game2.wins++; } } 
-        ]);        
+        // todo: does this make sense to compare the percentages? is there an established flickchart algorithm for this?
+        return game1.wins / (game1.wins + game1.losses) < game2.wins / (game2.wins + game2.losses);
         
-        return game1.id < game2.id;
+        //return game1.id < game2.id;
     }
     
     var lock = function(games, index) {
@@ -269,6 +268,10 @@ var games = function(list) {
     this.sortList = function() {
         this.list.sort(compareGames);
     }
+    
+    this.addGame = function(game) {
+        this.list.push(game);
+    }
 }
 /**
  * ToString for games.
@@ -392,6 +395,117 @@ matchups.prototype.toString = function() {
 }
 
 
+var thomas = function () {
+    
+    // Private
+    var games_object;
+    var process_pipeline = new Array();
+    var process_running = false;
+    
+    var push_pipeline = function(action) {
+        process_pipeline.push(action);
+        if (!process_running) {
+            process_running = true;
+            run_pipeline();
+        }
+    }
+    
+    var run_pipeline = function() {
+        if (process_pipeline.length) {
+            // Dequeue and execute
+            process_pipeline.shift()();
+        } else {
+            process_running = false; 
+        }
+    }
+    
+    // Public
+    var public_methods = {
+        init: function() {
+            games_object = new games([]);
+            return this;
+        },
+        update: function() {
+            push_pipeline(function() {
+                games_object.flickchartSort();
+                run_pipeline();
+            });
+            return this;
+        },
+        debug: function() {
+            push_pipeline(function() {
+                console.log(games_object.toString());
+                run_pipeline();
+            });
+            return this;
+        },
+        addGame: function(game_name) {
+            push_pipeline(function() {
+                games_object.addGame(new game(games_object.list.length, -1, game_name));
+                run_pipeline();
+            });
+            return this;
+        },
+        getComparison: function() {
+            // NOT async
+            if (games_object.list.length >= 2) {
+                var g1 = Math.floor(Math.random() * games_object.list.length);
+                var g2;
+                
+                // Find a random index that isn't identical to the first game's index
+                while ((g2 = Math.floor(Math.random() * games_object.list.length)) == g1);
+                
+                return {
+                    game1: games_object.list[g1],
+                    game2: games_object.list[g2],
+                    game1_index: g1,
+                    game2_index: g2
+                };
+            } else {
+                console.warn("Thomas: Cannot generate comparison with fewer than 2 games.")
+            }
+            return this;
+        },
+        setComparison: function(comparison, selection) {
+            // NOT async
+            if (selection == 1) {
+                games_object.list[comparison.game1_index].wins++;
+                games_object.list[comparison.game2_index].losses++;
+            } else if (selection == 2) {
+                games_object.list[comparison.game1_index].losses++;
+                games_object.list[comparison.game2_index].wins++;
+            } else {
+                console.warn("Thomas: Selection must be either 1 or 2.")
+            }
+            return this;
+        },
+        promptComparison: function() {
+            push_pipeline(function() {
+                var comp = public_methods.getComparison();
+                promptUser("Which game do you prefer?", [ 
+                    { 
+                        text: comp.game1.name, 
+                        click: function() { 
+                            public_methods.setComparison(comp, 1);
+                            run_pipeline(); 
+                        } 
+                    }, 
+                    { 
+                        text: comp.game2.name, 
+                        click: function() { 
+                            public_methods.setComparison(comp, 2);
+                            run_pipeline(); 
+                        } 
+                    } 
+                ]); 
+            });
+            return this;
+        }
+    };
+    
+    return public_methods.init();
+}
+
 
 /**************************************************************
     METHODS
@@ -455,9 +569,13 @@ var promptUser = function(message, buttons) {
 /**************************************************************
     TEMP MAIN
 **************************************************************/
-var games_array = getGames();
-var games_object = new games(games_array);
-games_object.toString();
-games_object.sortList();
-games_object.toString();
-games_object.flickchartSort();
+var test = new thomas();
+
+test.addGame('llama').addGame('sushi').addGame('taco');
+test.update();
+test.debug();
+
+test.promptComparison();
+
+test.update();
+test.debug();
