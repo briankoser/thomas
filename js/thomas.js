@@ -532,37 +532,36 @@ var closePrompt = function () {
 // Buttons: an array of object of the form { text: "link text", click: function() { /* action */ } }
 var promptUser = function(message, buttons) {
     if (document.getElementById("thomas-dialog") != null) {
-        document.getElementById("thomas-dialog").style.display = "flex";
+        var el = document.getElementById("thomas-dialog");
+        el.parentNode.removeChild(el);
     }
-    else {
-        var appendHtml = function (el, str) {
-            var div = document.createElement('div');
-            div.innerHTML = str;
-            while (div.children.length > 0) {
-                el.appendChild(div.children[0]);
-            }
-        };
-        
-        // Generate a list of buttons (reverse iterate since we're floating elements right)
-        var buttonsHtml = '';
-        var buttonEvents = new Array();
-        for (var i = buttons.length - 1; i >= 0; i--) {
-            buttons[i].buttonId = 'thomas-dialog-opt-' + i;
-            buttonsHtml += '<a id="' + buttons[i].buttonId + '" onclick="closePrompt()" href="javascript: void(0)">' + buttons[i].text + '</a>';
+    var appendHtml = function (el, str) {
+        var div = document.createElement('div');
+        div.innerHTML = str;
+        while (div.children.length > 0) {
+            el.appendChild(div.children[0]);
         }
+    };
+    
+    // Generate a list of buttons (reverse iterate since we're floating elements right)
+    var buttonsHtml = '';
+    var buttonEvents = new Array();
+    for (var i = buttons.length - 1; i >= 0; i--) {
+        buttons[i].buttonId = 'thomas-dialog-opt-' + i;
+        buttonsHtml += '<a id="' + buttons[i].buttonId + '" onclick="closePrompt()" href="javascript: void(0)">' + buttons[i].text + '</a>';
+    }
+    
+    appendHtml(document.body,
+        '<div id="thomas-dialog">' +
+        '    <div id="thomas-dialog-content">' +
+        '        <p>' + message + '</p>' +
+        '        <div>' + buttonsHtml + '</div>' +
+        '    </div>' +
+        '</div>');
         
-        appendHtml(document.body,
-            '<div id="thomas-dialog">' +
-            '    <div id="thomas-dialog-content">' +
-            '        <p>' + message + '</p>' +
-            '        <div>' + buttonsHtml + '</div>' +
-            '    </div>' +
-            '</div>');
-            
-        // Add events to buttons after adding them to the DOM
-        for (var i = 0; i < buttons.length; i++) {
-            document.getElementById(buttons[i].buttonId).addEventListener("click", buttons[i].click);
-        }
+    // Add events to buttons after adding them to the DOM
+    for (var i = 0; i < buttons.length; i++) {
+        document.getElementById(buttons[i].buttonId).addEventListener("click", buttons[i].click);
     }
 }
 
@@ -575,6 +574,9 @@ test.addGame('llama').addGame('sushi').addGame('taco');
 test.update();
 test.debug();
 
+test.promptComparison();
+test.promptComparison();
+test.promptComparison();
 test.promptComparison();
 
 test.update();
