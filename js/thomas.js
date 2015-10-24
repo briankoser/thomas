@@ -57,57 +57,47 @@ var games = function(list) {
       
         return 0;
     }
-
-    /**
-     * Ask the user to choose between two games.
-     * @method
-     * @param {game} game1 - The first game for the user to rank.
-     * @param {game} game2 - The second game for the user to rank.
-     * @returns 
-     */
-    var isFirstGameBetter = function(game1, game2) {
-        // todo: get user input
-        
-        console.log('contest: ' + game1 + ' vs ' + game2);
-        
-        // todo: does this make sense to compare the percentages? is there an established flickchart algorithm for this?
-        return game1.wins / (game1.wins + game1.losses) < game2.wins / (game2.wins + game2.losses);
-        
-        //return game1.id < game2.id;
-    }
     
-    var lock = function(games, index) {
+    var lock = function(games, index, lock) {
         var gameToLock = games[index];
-        gameToLock.locked = true;
+        gameToLock.locked = lock;
         games[index] = gameToLock;
         return games;
     }
     
     var lockAll = function(games) {
-        return _.each(games, function(element, index, list) {return lock(list, index);});
+        return _.each(games, function(element, index, list) {return lock(list, index, true);});
+    }
+    
+    var unlockAll = function(games) {
+        for (var i = 0; i < games.length; i++) {
+            games[i].locked = false;
+            games[i].rankedThisIteration = false;
+        }
+        return games;
     }
     
     var lockCompletelySortedGames = function(games, matchups) {
-        for(var i = 0; i <= games.length; i++)
+        for(var i = 0; i < games.length; i++)
         {
             var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
             var gamesUnlockedExcludingCurrentGameCount = getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = lock(games, i);
+                games = lock(games, i, true);
             }
             else {
                 break;
             }
         }
         
-        for(var i = games.length; i <= 0; i--)
+        for(var i = games.length - 1; i >= 0; i--)
         {
             var gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
             var gamesUnlockedExcludingCurrentGameCount = getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = lock(games, i);
+                games = lock(games, i, true);
             }
             else {
                 break;
@@ -126,9 +116,7 @@ var games = function(list) {
     }
     
     //todo: pass game_matchups into rankGames as a parameter?
-    var rankGames = function(games, gameIndex1, gameIndex2) {
-        var isFirstBetter = isFirstGameBetter(games[gameIndex1], games[gameIndex2]);
-        
+    var rankGames = function(games, gameIndex1, gameIndex2, isFirstBetter) {
         if(isFirstBetter) {
             games[gameIndex1].wins += 1;
             games[gameIndex2].losses += 1;
@@ -219,24 +207,33 @@ var games = function(list) {
         }).length >= 2;
     }
     
-    this.flickchartSort = function() {
+    this.getFlickchartMatchup = function() {
         var self = this;
         
-        // if there's only one game to sort, it is already sorted
-        if(self.list.length <= 1) {
-            lockList();
-            return;
+        // If there's only one game to sort, it is already sorted
+        if (self.list.length <= 1) {
+            lockAll();
+        } else {
+            if (!self.doesMatchupRemain()) {
+                // All games have been visited at least once, start over
+                self.list = unlockAll(self.list);
+            }
+            if (self.doesMatchupRemain()) {
+                var game1 = self.getFirstNotLockedOrRanked();
+                var game1Index = _.indexOf(self.list, game1);
+                var game2 = self.getOpponent(self.list, game1, game_matchups);
+                var game2Index = _.indexOf(self.list, game2);
+                
+                return new battle(game1, game2, game1Index, game2Index);
+            }
         }
         
-        while(self.doesMatchupRemain()) {
-            var game1 = self.getFirstNotLockedOrRanked();
-            var game1Index = _.indexOf(self.list, game1);
-            var game2 = self.getOpponent(self.list, game1, game_matchups);
-            var game2Index = _.indexOf(self.list, game2);
-            
-            self.list = rankGames(self.list, game1Index, game2Index);
-            self.sortList();
-        }
+        return new battle();
+    }
+    
+    this.setFlickchartMatchup = function(battleResult) {
+        this.list = rankGames(this.list, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
+        this.sortList();
         
         console.log(game_matchups.toString());
     }
@@ -253,11 +250,16 @@ var games = function(list) {
         });
         
         if (game2 === undefined) {
-            var game2 = _.find(games, function(game) {
-                return !game.locked && game.id !== games[game1Index].id && !matchups.isRanked(game1.id, game.id);
+            game2 = _.find(games, function(game) {
+                return !game.locked && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
             });
         }
         
+        // If game2 is still undefined, then all possible matchups have been evaluated
+        if (game2 === undefined) {
+            console.warn("Thomas: All possible matchups have been evaluated by the user.");
+        }
+                
         return game2;
     }
     
@@ -301,6 +303,24 @@ matchup.prototype.toString = function () {
     return this.winner + '>' + this.loser;
 }
 
+
+/**
+ * A request for the user to pick which of two games he prefers.
+ * @class
+ * @param {string} game1 - The first game.
+ * @param {string} game2 - The second game.
+ * @param {string} game1Index - The index of the first game.
+ * @param {string} game2Index - The index of the second game.
+ * @param {string} winner - The index of the winner of the matchup.
+ */
+var battle = function (game1, game2, game1Index, game2Index, winner) {
+    this.game1 = game1;
+    this.game2 = game2;
+    this.game1Index = game1Index;
+    this.game2Index = game2Index;
+    this.winnerIndex = winner;
+    this.isNull = typeof game1 == 'undefined';
+}
 
 
 /**
@@ -425,13 +445,6 @@ var thomas = function () {
             games_object = new games([]);
             return this;
         },
-        update: function() {
-            push_pipeline(function() {
-                games_object.flickchartSort();
-                run_pipeline();
-            });
-            return this;
-        },
         debug: function() {
             push_pipeline(function() {
                 console.log(games_object.toString());
@@ -448,32 +461,18 @@ var thomas = function () {
         },
         getComparison: function() {
             // NOT async
-            if (games_object.list.length >= 2) {
-                var g1 = Math.floor(Math.random() * games_object.list.length);
-                var g2;
-                
-                // Find a random index that isn't identical to the first game's index
-                while ((g2 = Math.floor(Math.random() * games_object.list.length)) == g1);
-                
-                return {
-                    game1: games_object.list[g1],
-                    game2: games_object.list[g2],
-                    game1_index: g1,
-                    game2_index: g2
-                };
+            var fc = games_object.getFlickchartMatchup();
+            if (!fc.isNull) {
+                return fc;
             } else {
-                console.warn("Thomas: Cannot generate comparison with fewer than 2 games.")
+                console.warn("Thomas: Cannot generate comparison.");
             }
-            return this;
         },
         setComparison: function(comparison, selection) {
             // NOT async
-            if (selection == 1) {
-                games_object.list[comparison.game1_index].wins++;
-                games_object.list[comparison.game2_index].losses++;
-            } else if (selection == 2) {
-                games_object.list[comparison.game1_index].losses++;
-                games_object.list[comparison.game2_index].wins++;
+            if (selection == 1 || selection == 2) {
+                comparison.winnerIndex = selection;
+                games_object.setFlickchartMatchup(comparison);
             } else {
                 console.warn("Thomas: Selection must be either 1 or 2.")
             }
@@ -482,22 +481,26 @@ var thomas = function () {
         promptComparison: function() {
             push_pipeline(function() {
                 var comp = public_methods.getComparison();
-                promptUser("Which game do you prefer?", [ 
-                    { 
-                        text: comp.game1.name, 
-                        click: function() { 
-                            public_methods.setComparison(comp, 1);
-                            run_pipeline(); 
+                if (typeof comp !== 'undefined' && typeof comp.game1 !== 'undefined' && typeof comp.game2 !== 'undefined') {
+                    promptUser("Which game do you prefer?", [ 
+                        { 
+                            text: comp.game1.name, 
+                            click: function() { 
+                                public_methods.setComparison(comp, 1);
+                                run_pipeline(); 
+                            } 
+                        }, 
+                        { 
+                            text: comp.game2.name, 
+                            click: function() { 
+                                public_methods.setComparison(comp, 2);
+                                run_pipeline(); 
+                            } 
                         } 
-                    }, 
-                    { 
-                        text: comp.game2.name, 
-                        click: function() { 
-                            public_methods.setComparison(comp, 2);
-                            run_pipeline(); 
-                        } 
-                    } 
-                ]); 
+                    ]); 
+                } else {
+                    run_pipeline(); 
+                }
             });
             return this;
         }
@@ -570,14 +573,14 @@ var promptUser = function(message, buttons) {
 **************************************************************/
 var test = new thomas();
 
-test.addGame('llama').addGame('sushi').addGame('taco');
-test.update();
+test.addGame('llama').addGame('sushi').addGame('taco').addGame('chocolate');
 test.debug();
 
 test.promptComparison();
 test.promptComparison();
 test.promptComparison();
 test.promptComparison();
+test.promptComparison();
+test.promptComparison();
 
-test.update();
 test.debug();
