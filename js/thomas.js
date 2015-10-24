@@ -459,6 +459,44 @@ var thomas = function () {
             });
             return this;
         },
+        addGamesFromFile: function(onLoadCallback) {
+            // This method MUST be called from the user context (e.g., click event) or nothing will happen.
+            try {
+                var fileInput = document.createElement('input');
+                fileInput.type = "file";
+                fileInput.style.position = "fixed";
+                fileInput.style.top = "-1000px";
+                fileInput.onchange = function(e) {
+                    var gameFile = fileInput.files[0];
+                    if (gameFile) {
+                        var reader = new FileReader();
+                        reader.readAsText(gameFile, "UTF-8");
+                        reader.onload = function (event) {
+                            try {
+                                var games = event.target.result.replace(/\r/g, '').split('\n');
+                                for (var i = 0; i < games.length; i++) {
+                                    // console.log('Thomas: Loaded ' + games[i]);
+                                    games_object.addGame(new game(games_object.list.length, -1, games[i]));
+                                }
+                            } catch (err) {
+                                console.warn('Thomas: Error parsing games from file!');
+                            }
+                            if (typeof onLoadCallback === 'function') {
+                                onLoadCallback();
+                            }
+                        }
+                        reader.onerror = function () {
+                            console.warn('Thomas: Error loading file!');
+                        }
+                    }
+                }
+                document.body.appendChild(fileInput);
+                fileInput.click();
+            } catch (ex) {
+                console.warn('Thomas: Error loading file!');
+                run_pipeline();
+            }
+        },
         getComparison: function() {
             // NOT async
             var fc = games_object.getFlickchartMatchup();
@@ -572,15 +610,17 @@ var promptUser = function(message, buttons) {
     TEMP MAIN
 **************************************************************/
 var test = new thomas();
-
-test.addGame('llama').addGame('sushi').addGame('taco').addGame('chocolate');
-test.debug();
-
-test.promptComparison();
-test.promptComparison();
-test.promptComparison();
-test.promptComparison();
-test.promptComparison();
-test.promptComparison();
-
-test.debug();
+var runTests = function () {
+    test.addGame('llama').addGame('sushi').addGame('taco').addGame('chocolate');
+    
+    test.debug();
+    
+    test.promptComparison();
+    test.promptComparison();
+    test.promptComparison();
+    test.promptComparison();
+    test.promptComparison();
+    test.promptComparison();
+    
+    test.debug();
+}
