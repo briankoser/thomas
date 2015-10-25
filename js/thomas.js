@@ -6,10 +6,12 @@
  * @class
  * @param {int} id - A unique id.
  * @param {int} position - The current position in the ranked list.
+ * @param {string} name - The name of the game.
  */
-var game = function(id, position) {
+var game = function(id, position, name) {
     this.id = id;
     this.position = position;
+    this.name = name;
     this.wins = 0;
     this.losses = 0;
     this.locked = false;
@@ -55,60 +57,47 @@ var games = function(list) {
       
         return 0;
     }
-
-    /**
-     * Ask the user to choose between two games.
-     * @method
-     * @param {game} game1 - The first game for the user to rank.
-     * @param {game} game2 - The second game for the user to rank.
-     * @returns 
-     */
-    var isFirstGameBetter = function(game1, game2) {
-        // todo: get user input
-        
-        console.log('contest: ' + game1 + ' vs ' + game2);
-        
-        // todo: Gonna need to use promise pipelines since these events are raised after returning from this function
-        promptUser("Which game do you prefer?", [ 
-            { text: game1, click: function() { game1.wins++; } }, 
-            { text: game2, click: function() { game2.wins++; } } 
-        ]);        
-        
-        return game1.id < game2.id;
-    }
     
-    var lock = function(games, index) {
+    var lock = function(games, index, lock) {
         var gameToLock = games[index];
-        gameToLock.locked = true;
+        gameToLock.locked = lock;
         games[index] = gameToLock;
         return games;
     }
     
     var lockAll = function(games) {
-        return _.each(games, function(element, index, list) {return lock(list, index);});
+        return _.each(games, function(element, index, list) {return lock(list, index, true);});
+    }
+    
+    var unlockAll = function(games) {
+        for (var i = 0; i < games.length; i++) {
+            games[i].locked = false;
+            games[i].rankedThisIteration = false;
+        }
+        return games;
     }
     
     var lockCompletelySortedGames = function(games, matchups) {
-        for(var i = 0; i <= games.length; i++)
+        for(var i = 0; i < games.length; i++)
         {
             var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
             var gamesUnlockedExcludingCurrentGameCount = getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = lock(games, i);
+                games = lock(games, i, true);
             }
             else {
                 break;
             }
         }
         
-        for(var i = games.length; i <= 0; i--)
+        for(var i = games.length - 1; i >= 0; i--)
         {
             var gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
             var gamesUnlockedExcludingCurrentGameCount = getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = lock(games, i);
+                games = lock(games, i, true);
             }
             else {
                 break;
@@ -127,9 +116,7 @@ var games = function(list) {
     }
     
     //todo: pass game_matchups into rankGames as a parameter?
-    var rankGames = function(games, gameIndex1, gameIndex2) {
-        var isFirstBetter = isFirstGameBetter(games[gameIndex1], games[gameIndex2]);
-        
+    var rankGames = function(games, gameIndex1, gameIndex2, isFirstBetter) {
         if(isFirstBetter) {
             games[gameIndex1].wins += 1;
             games[gameIndex2].losses += 1;
@@ -220,24 +207,33 @@ var games = function(list) {
         }).length >= 2;
     }
     
-    this.flickchartSort = function() {
+    this.getFlickchartMatchup = function() {
         var self = this;
         
-        // if there's only one game to sort, it is already sorted
-        if(self.list.length <= 1) {
-            lockList();
-            return;
+        // If there's only one game to sort, it is already sorted
+        if (self.list.length <= 1) {
+            lockAll();
+        } else {
+            if (!self.doesMatchupRemain()) {
+                // All games have been visited at least once, start over
+                self.list = unlockAll(self.list);
+            }
+            if (self.doesMatchupRemain()) {
+                var game1 = self.getFirstNotLockedOrRanked();
+                var game1Index = _.indexOf(self.list, game1);
+                var game2 = self.getOpponent(self.list, game1, game_matchups);
+                var game2Index = _.indexOf(self.list, game2);
+                
+                return new battle(game1, game2, game1Index, game2Index);
+            }
         }
         
-        while(self.doesMatchupRemain()) {
-            var game1 = self.getFirstNotLockedOrRanked();
-            var game1Index = _.indexOf(self.list, game1);
-            var game2 = self.getOpponent(self.list, game1, game_matchups);
-            var game2Index = _.indexOf(self.list, game2);
-            
-            self.list = rankGames(self.list, game1Index, game2Index);
-            self.sortList();
-        }
+        return new battle();
+    }
+    
+    this.setFlickchartMatchup = function(battleResult) {
+        this.list = rankGames(this.list, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
+        this.sortList();
         
         console.log(game_matchups.toString());
     }
@@ -254,11 +250,16 @@ var games = function(list) {
         });
         
         if (game2 === undefined) {
-            var game2 = _.find(games, function(game) {
-                return !game.locked && game.id !== games[game1Index].id && !matchups.isRanked(game1.id, game.id);
+            game2 = _.find(games, function(game) {
+                return !game.locked && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
             });
         }
         
+        // If game2 is still undefined, then all possible matchups have been evaluated
+        if (game2 === undefined) {
+            console.warn("Thomas: All possible matchups have been evaluated by the user.");
+        }
+                
         return game2;
     }
     
@@ -268,6 +269,10 @@ var games = function(list) {
     
     this.sortList = function() {
         this.list.sort(compareGames);
+    }
+    
+    this.addGame = function(game) {
+        this.list.push(game);
     }
 }
 /**
@@ -298,6 +303,24 @@ matchup.prototype.toString = function () {
     return this.winner + '>' + this.loser;
 }
 
+
+/**
+ * A request for the user to pick which of two games he prefers.
+ * @class
+ * @param {string} game1 - The first game.
+ * @param {string} game2 - The second game.
+ * @param {string} game1Index - The index of the first game.
+ * @param {string} game2Index - The index of the second game.
+ * @param {string} winner - The index of the winner of the matchup.
+ */
+var battle = function (game1, game2, game1Index, game2Index, winner) {
+    this.game1 = game1;
+    this.game2 = game2;
+    this.game1Index = game1Index;
+    this.game2Index = game2Index;
+    this.winnerIndex = winner;
+    this.isNull = typeof game1 == 'undefined';
+}
 
 
 /**
@@ -392,6 +415,100 @@ matchups.prototype.toString = function() {
 }
 
 
+var thomas = function () {
+    
+    // Private
+    var games_object;
+    var process_pipeline = new Array();
+    var process_running = false;
+    
+    var push_pipeline = function(action) {
+        process_pipeline.push(action);
+        if (!process_running) {
+            process_running = true;
+            run_pipeline();
+        }
+    }
+    
+    var run_pipeline = function() {
+        if (process_pipeline.length) {
+            // Dequeue and execute
+            process_pipeline.shift()();
+        } else {
+            process_running = false; 
+        }
+    }
+    
+    // Public
+    var public_methods = {
+        init: function() {
+            games_object = new games([]);
+            return this;
+        },
+        debug: function() {
+            push_pipeline(function() {
+                console.log(games_object.toString());
+                run_pipeline();
+            });
+            return this;
+        },
+        addGame: function(game_name) {
+            push_pipeline(function() {
+                games_object.addGame(new game(games_object.list.length, -1, game_name));
+                run_pipeline();
+            });
+            return this;
+        },
+        getComparison: function() {
+            // NOT async
+            var fc = games_object.getFlickchartMatchup();
+            if (!fc.isNull) {
+                return fc;
+            } else {
+                console.warn("Thomas: Cannot generate comparison.");
+            }
+        },
+        setComparison: function(comparison, selection) {
+            // NOT async
+            if (selection == 1 || selection == 2) {
+                comparison.winnerIndex = selection;
+                games_object.setFlickchartMatchup(comparison);
+            } else {
+                console.warn("Thomas: Selection must be either 1 or 2.")
+            }
+            return this;
+        },
+        promptComparison: function() {
+            push_pipeline(function() {
+                var comp = public_methods.getComparison();
+                if (typeof comp !== 'undefined' && typeof comp.game1 !== 'undefined' && typeof comp.game2 !== 'undefined') {
+                    promptUser("Which game do you prefer?", [ 
+                        { 
+                            text: comp.game1.name, 
+                            click: function() { 
+                                public_methods.setComparison(comp, 1);
+                                run_pipeline(); 
+                            } 
+                        }, 
+                        { 
+                            text: comp.game2.name, 
+                            click: function() { 
+                                public_methods.setComparison(comp, 2);
+                                run_pipeline(); 
+                            } 
+                        } 
+                    ]); 
+                } else {
+                    run_pipeline(); 
+                }
+            });
+            return this;
+        }
+    };
+    
+    return public_methods.init();
+}
+
 
 /**************************************************************
     METHODS
@@ -418,46 +535,52 @@ var closePrompt = function () {
 // Buttons: an array of object of the form { text: "link text", click: function() { /* action */ } }
 var promptUser = function(message, buttons) {
     if (document.getElementById("thomas-dialog") != null) {
-        document.getElementById("thomas-dialog").style.display = "flex";
+        var el = document.getElementById("thomas-dialog");
+        el.parentNode.removeChild(el);
     }
-    else {
-        var appendHtml = function (el, str) {
-            var div = document.createElement('div');
-            div.innerHTML = str;
-            while (div.children.length > 0) {
-                el.appendChild(div.children[0]);
-            }
-        };
-        
-        // Generate a list of buttons (reverse iterate since we're floating elements right)
-        var buttonsHtml = '';
-        var buttonEvents = new Array();
-        for (var i = buttons.length - 1; i >= 0; i--) {
-            buttons[i].buttonId = 'thomas-dialog-opt-' + i;
-            buttonsHtml += '<a id="' + buttons[i].buttonId + '" onclick="closePrompt()" href="javascript: void(0)">' + buttons[i].text + '</a>';
+    var appendHtml = function (el, str) {
+        var div = document.createElement('div');
+        div.innerHTML = str;
+        while (div.children.length > 0) {
+            el.appendChild(div.children[0]);
         }
+    };
+    
+    // Generate a list of buttons (reverse iterate since we're floating elements right)
+    var buttonsHtml = '';
+    var buttonEvents = new Array();
+    for (var i = buttons.length - 1; i >= 0; i--) {
+        buttons[i].buttonId = 'thomas-dialog-opt-' + i;
+        buttonsHtml += '<a id="' + buttons[i].buttonId + '" onclick="closePrompt()" href="javascript: void(0)">' + buttons[i].text + '</a>';
+    }
+    
+    appendHtml(document.body,
+        '<div id="thomas-dialog">' +
+        '    <div id="thomas-dialog-content">' +
+        '        <p>' + message + '</p>' +
+        '        <div>' + buttonsHtml + '</div>' +
+        '    </div>' +
+        '</div>');
         
-        appendHtml(document.body,
-            '<div id="thomas-dialog">' +
-            '    <div id="thomas-dialog-content">' +
-            '        <p>' + message + '</p>' +
-            '        <div>' + buttonsHtml + '</div>' +
-            '    </div>' +
-            '</div>');
-            
-        // Add events to buttons after adding them to the DOM
-        for (var i = 0; i < buttons.length; i++) {
-            document.getElementById(buttons[i].buttonId).addEventListener("click", buttons[i].click);
-        }
+    // Add events to buttons after adding them to the DOM
+    for (var i = 0; i < buttons.length; i++) {
+        document.getElementById(buttons[i].buttonId).addEventListener("click", buttons[i].click);
     }
 }
 
 /**************************************************************
     TEMP MAIN
 **************************************************************/
-var games_array = getGames();
-var games_object = new games(games_array);
-games_object.toString();
-games_object.sortList();
-games_object.toString();
-games_object.flickchartSort();
+var test = new thomas();
+
+test.addGame('llama').addGame('sushi').addGame('taco').addGame('chocolate');
+test.debug();
+
+test.promptComparison();
+test.promptComparison();
+test.promptComparison();
+test.promptComparison();
+test.promptComparison();
+test.promptComparison();
+
+test.debug();
