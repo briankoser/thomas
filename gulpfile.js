@@ -1,8 +1,17 @@
-var gulp = require('gulp'),
-  connect = require('gulp-connect');
+const gulp = require('gulp');
+const connect = require('gulp-connect');
+const babel = require('gulp-babel');
 
-gulp.task('webserver', function() {
+gulp.task('babel', () => {
+  return gulp.src('js/src/thomas.js')
+    .pipe(babel({
+      presets: ['es2015']
+    }))
+    .pipe(gulp.dest('js'))
+});
+
+gulp.task('webserver', () => {
   connect.server();
 });
 
-gulp.task('default', ['webserver']);
+gulp.task('default', ['babel', 'webserver']);
