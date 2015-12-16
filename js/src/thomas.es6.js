@@ -8,26 +8,24 @@
  * @param {int} position - The current position in the ranked list.
  * @param {string} name - The name of the game.
  */
-var game = function(id, position, name) {
-    this.id = id;
-    this.position = position;
-    this.name = name;
-    this.wins = 0;
-    this.losses = 0;
-    this.locked = false;
-    this.rankedThisIteration = false;
+class Game {
+    constructor (id, position, name) {
+        this.id = id;
+        this.position = position;
+        this.name = name;
+        this.wins = 0;
+        this.losses = 0;
+        this.locked = false;
+        this.rankedThisIteration = false;
+    }
     
-    var differential = function() {
+    differential () {
         return wins - losses;
     }
-}
-/**
- * ToString for a game.
- * @method
- * @returns The string representation of a game.
- */
-game.prototype.toString = function() {
-    return this.id;
+    
+    toString() {
+        return this.name;
+    }
 }
 
 
@@ -454,7 +452,7 @@ var thomas = function () {
         },
         addGame: function(game_name) {
             push_pipeline(function() {
-                games_object.addGame(new game(games_object.list.length, -1, game_name));
+                games_object.addGame(new Game(games_object.list.length, -1, game_name));
                 run_pipeline();
             });
             return this;
@@ -520,7 +518,7 @@ var getGames = function() {
     var i, j;
     
     for(i = 1, j = 10; i <= 10; i++, j--) {
-        games.push(new game(i, j));
+        games.push(new Game(i, j));
     }
     
     return games;

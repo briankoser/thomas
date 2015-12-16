@@ -1,5 +1,9 @@
 'use strict';
 
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 /**************************************************************
     CLASSES
 **************************************************************/
@@ -10,33 +14,41 @@
  * @param {int} position - The current position in the ranked list.
  * @param {string} name - The name of the game.
  */
-var game = function game(id, position, name) {
-    this.id = id;
-    this.position = position;
-    this.name = name;
-    this.wins = 0;
-    this.losses = 0;
-    this.locked = false;
-    this.rankedThisIteration = false;
 
-    var differential = function differential() {
-        return wins - losses;
-    };
-};
-/**
- * ToString for a game.
- * @method
- * @returns The string representation of a game.
- */
-game.prototype.toString = function () {
-    return this.id;
-};
+var Game = (function () {
+    function Game(id, position, name) {
+        _classCallCheck(this, Game);
+
+        this.id = id;
+        this.position = position;
+        this.name = name;
+        this.wins = 0;
+        this.losses = 0;
+        this.locked = false;
+        this.rankedThisIteration = false;
+    }
+
+    _createClass(Game, [{
+        key: 'differential',
+        value: function differential() {
+            return wins - losses;
+        }
+    }, {
+        key: 'toString',
+        value: function toString() {
+            return this.name;
+        }
+    }]);
+
+    return Game;
+})();
 
 /**
  * A collection of games.
  * @class
  * @param {array} list - An array of games.
  */
+
 var games = function games(list) {
     // private
     var game_matchups = new matchups();
@@ -430,7 +442,7 @@ var thomas = function thomas() {
         },
         addGame: function addGame(game_name) {
             push_pipeline(function () {
-                games_object.addGame(new game(games_object.list.length, -1, game_name));
+                games_object.addGame(new Game(games_object.list.length, -1, game_name));
                 run_pipeline();
             });
             return this;
@@ -492,7 +504,7 @@ var getGames = function getGames() {
     var i, j;
 
     for (i = 1, j = 10; i <= 10; i++, j--) {
-        games.push(new game(i, j));
+        games.push(new Game(i, j));
     }
 
     return games;
