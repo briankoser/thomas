@@ -224,7 +224,7 @@ class GamesHelpers {
 class Games {
     constructor (list) {
         this.list = list;
-        this.game_matchups = new matchups();
+        this.game_matchups = new Matchups();
     }
     
     doesMatchupRemain () {
@@ -344,15 +344,17 @@ class Matchup {
  * A collection of matchups.
  * @class
  */
-var matchups = function () {
-    this.list = [];
+class Matchups {
+    constructor () {
+        this.list = [];
+    }
 
-    this.add = function (matchup) {
+    add (matchup) {
         this.list.push(matchup);
     }
     
     //todo: pass in list as parameter
-    this.getAllRankedLower = function (id, includeId) {
+    getAllRankedLower (id, includeId) {
         if (includeId == undefined)
             includeId = false;
         
@@ -383,7 +385,7 @@ var matchups = function () {
     }
     
     //todo: pass in list as parameter
-    this.getAllRankedHigher = function (id, includeId) {
+    getAllRankedHigher (id, includeId) {
         if (includeId == undefined)
             includeId = false;
         
@@ -413,7 +415,7 @@ var matchups = function () {
         }
     }
     
-    this.isRanked = function (gameId1, gameId2) {
+    isRanked (gameId1, gameId2) {
         var self = this;
         
         var higher = self.getAllRankedHigher(gameId1);
@@ -422,14 +424,16 @@ var matchups = function () {
         
         return _.contains(all, gameId2);
     }
+
+    /**
+    * ToString for matchups.
+    * @method
+    */    
+    toString () {
+        return this.list.toString();
+    }
 }
-/**
- * ToString for matchups.
- * @method
- */
-matchups.prototype.toString = function() {
-    return this.list.toString();
-}
+
 
 
 var thomas = function () {

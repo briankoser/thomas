@@ -251,7 +251,7 @@ var Games = (function () {
         _classCallCheck(this, Games);
 
         this.list = list;
-        this.game_matchups = new matchups();
+        this.game_matchups = new Matchups();
     }
 
     _createClass(Games, [{
@@ -389,84 +389,104 @@ var Matchup = (function () {
  * @class
  */
 
-var matchups = function matchups() {
-    this.list = [];
+var Matchups = (function () {
+    function Matchups() {
+        _classCallCheck(this, Matchups);
 
-    this.add = function (matchup) {
-        this.list.push(matchup);
-    };
+        this.list = [];
+    }
 
-    //todo: pass in list as parameter
-    this.getAllRankedLower = function (id, includeId) {
-        if (includeId == undefined) includeId = false;
+    _createClass(Matchups, [{
+        key: 'add',
+        value: function add(matchup) {
+            this.list.push(matchup);
+        }
 
-        var self = this;
+        //todo: pass in list as parameter
 
-        var losers = self.list.map(function (item) {
-            if (item.winner == id) return item.loser;
-        }).filter(function (item) {
-            return item;
-        });
+    }, {
+        key: 'getAllRankedLower',
+        value: function getAllRankedLower(id, includeId) {
+            if (includeId == undefined) includeId = false;
 
-        if (losers.length == 0) {
-            return includeId ? [id] : [];
-        } else {
-            var children = losers.map(function (item) {
-                return self.getAllRankedLower(item, true);
+            var self = this;
+
+            var losers = self.list.map(function (item) {
+                if (item.winner == id) return item.loser;
+            }).filter(function (item) {
+                return item;
             });
 
-            losers = losers.concat(_.flatten(children));
+            if (losers.length == 0) {
+                return includeId ? [id] : [];
+            } else {
+                var children = losers.map(function (item) {
+                    return self.getAllRankedLower(item, true);
+                });
 
-            if (includeId) losers.push(id);
+                losers = losers.concat(_.flatten(children));
 
-            return _.uniq(losers);
+                if (includeId) losers.push(id);
+
+                return _.uniq(losers);
+            }
         }
-    };
 
-    //todo: pass in list as parameter
-    this.getAllRankedHigher = function (id, includeId) {
-        if (includeId == undefined) includeId = false;
+        //todo: pass in list as parameter
 
-        var self = this;
+    }, {
+        key: 'getAllRankedHigher',
+        value: function getAllRankedHigher(id, includeId) {
+            if (includeId == undefined) includeId = false;
 
-        var winners = self.list.map(function (item) {
-            if (item.loser == id) return item.winner;
-        }).filter(function (item) {
-            return item;
-        });
+            var self = this;
 
-        if (winners.length == 0) {
-            return includeId ? [id] : [];
-        } else {
-            var parents = winners.map(function (item) {
-                return self.getAllRankedHigher(item, true);
+            var winners = self.list.map(function (item) {
+                if (item.loser == id) return item.winner;
+            }).filter(function (item) {
+                return item;
             });
 
-            winners = winners.concat(_.flatten(parents));
+            if (winners.length == 0) {
+                return includeId ? [id] : [];
+            } else {
+                var parents = winners.map(function (item) {
+                    return self.getAllRankedHigher(item, true);
+                });
 
-            if (includeId) winners.push(id);
+                winners = winners.concat(_.flatten(parents));
 
-            return _.uniq(winners);
+                if (includeId) winners.push(id);
+
+                return _.uniq(winners);
+            }
         }
-    };
+    }, {
+        key: 'isRanked',
+        value: function isRanked(gameId1, gameId2) {
+            var self = this;
 
-    this.isRanked = function (gameId1, gameId2) {
-        var self = this;
+            var higher = self.getAllRankedHigher(gameId1);
+            var lower = self.getAllRankedLower(gameId1);
+            var all = higher.concat(lower);
 
-        var higher = self.getAllRankedHigher(gameId1);
-        var lower = self.getAllRankedLower(gameId1);
-        var all = higher.concat(lower);
+            return _.contains(all, gameId2);
+        }
 
-        return _.contains(all, gameId2);
-    };
-};
-/**
- * ToString for matchups.
- * @method
- */
-matchups.prototype.toString = function () {
-    return this.list.toString();
-};
+        /**
+        * ToString for matchups.
+        * @method
+        */
+
+    }, {
+        key: 'toString',
+        value: function toString() {
+            return this.list.toString();
+        }
+    }]);
+
+    return Matchups;
+})();
 
 var thomas = function thomas() {
 
