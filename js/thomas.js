@@ -31,7 +31,7 @@ var Game = (function () {
     _createClass(Game, [{
         key: 'differential',
         value: function differential() {
-            return wins - losses;
+            return this.wins - this.losses;
         }
     }, {
         key: 'toString',
@@ -49,240 +49,272 @@ var Game = (function () {
  * @param {array} list - An array of games.
  */
 
-var games = function games(list) {
-    // private
-    var game_matchups = new matchups();
+var Games = (function () {
+    _createClass(Games, null, [{
+        key: 'compareGames',
 
-    /**
-     * Compare the positions of two games.
-     * @method
-     * @param {game} game1 - The first game to compare by position.
-     * @param {game} game2 - The second game to compare by position.
-     * @returns 
-     */
-    var compareGames = function compareGames(game1, game2) {
-        if (game1.position < game2.position) return -1;
-
-        if (game1.position > game2.position) return 1;
-
-        return 0;
-    };
-
-    var lock = function lock(games, index, _lock) {
-        var gameToLock = games[index];
-        gameToLock.locked = _lock;
-        games[index] = gameToLock;
-        return games;
-    };
-
-    var lockAll = function lockAll(games) {
-        return _.each(games, function (element, index, list) {
-            return lock(list, index, true);
-        });
-    };
-
-    var unlockAll = function unlockAll(games) {
-        for (var i = 0; i < games.length; i++) {
-            games[i].locked = false;
-            games[i].rankedThisIteration = false;
+        // private
+        /**
+         * Compare the positions of two games.
+         * @method
+         * @param {game} game1 - The first game to compare by position.
+         * @param {game} game2 - The second game to compare by position.
+         * @returns 
+         */
+        value: function compareGames(game1, game2) {
+            return game1.position - game2.position;
         }
-        return games;
-    };
-
-    var lockCompletelySortedGames = function lockCompletelySortedGames(games, matchups) {
-        for (var i = 0; i < games.length; i++) {
-            var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
-            var gamesUnlockedExcludingCurrentGameCount = getUnlockedGames(games).length - 1;
-
-            if (!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = lock(games, i, true);
-            } else {
-                break;
-            }
+    }, {
+        key: 'lock',
+        value: function lock(games, index, _lock) {
+            var gameToLock = games[index];
+            gameToLock.locked = _lock;
+            games[index] = gameToLock;
+            return games;
         }
-
-        for (var i = games.length - 1; i >= 0; i--) {
-            var gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
-            var gamesUnlockedExcludingCurrentGameCount = getUnlockedGames(games).length - 1;
-
-            if (!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = lock(games, i, true);
-            } else {
-                break;
-            }
-        }
-
-        return games;
-    };
-
-    var logMatchup = function logMatchup(matchups, winner, loser) {
-        var match = new matchup(winner, loser);
-
-        matchups.add(match);
-
-        return matchups;
-    };
-
-    //todo: pass game_matchups into rankGames as a parameter?
-    var rankGames = function rankGames(games, gameIndex1, gameIndex2, isFirstBetter) {
-        if (isFirstBetter) {
-            games[gameIndex1].wins += 1;
-            games[gameIndex2].losses += 1;
-            game_matchups = logMatchup(game_matchups, games[gameIndex1].id, games[gameIndex2].id);
-            games = reposition(games, gameIndex1, gameIndex2);
-        } else {
-            games[gameIndex1].losses += 1;
-            games[gameIndex2].wins += 1;
-            game_matchups = logMatchup(game_matchups, games[gameIndex2].id, games[gameIndex1].id);
-            games = reposition(games, gameIndex2, gameIndex1);
-        }
-
-        games[gameIndex1].rankedThisIteration = true;
-        games[gameIndex2].rankedThisIteration = true;
-        games = lockCompletelySortedGames(games, game_matchups);
-
-        return games;
-    };
-
-    var reposition = function reposition(games, winnerIndex, loserIndex) {
-        var winnerPosition = games[winnerIndex].position;
-        var loserPosition = games[loserIndex].position;
-
-        // if winner is positioned above loser
-        if (winnerPosition < loserPosition) {
-            var winner = games[winnerIndex];
-            var loser = games[loserIndex];
-            var gamesRankedAboveWinner = getAllRankedHigher(winner.id);
-            var gamesRankedBelowLoser = getAllRankedLower(loser.id);
-
-            if (winner.differential() > 0) {
-                var newPosition = winner.position - winner.differential();
-
-                for (var i = winnerPosition - 1; i >= newPosition; i--) {
-                    if (games[i].locked || _.contains(gamesRankedAboveWinner, games[i].id)) {
-                        newPosition = i + 1;
-                        break;
-                    } else {
-                        games[i].position += 1;
-                    }
-                }
-
-                games[winnerIndex].position = newPosition;
-            }
-
-            if (loser.differential() < 0) {
-                var newPosition = loser.position - loser.differential();
-
-                for (var i = loserPosition + 1; i <= newPosition; i++) {
-                    if (games[i].locked || _.contains(gamesRankedBelowLoser, games[i].id)) {
-                        newPosition = i - 1;
-                        break;
-                    } else {
-                        games[i].position -= 1;
-                    }
-                }
-
-                games[loserIndex].position = newPosition;
-            }
-        } else {
-            _.map(games, function (item) {
-                if (item.position >= loserPosition && item.position < winnerPosition) item.position += 1;
+    }, {
+        key: 'lockAll',
+        value: function lockAll(games) {
+            return _.each(games, function (element, index, list) {
+                return Games.lock(list, index, true);
             });
-
-            games[winnerIndex].position = loserPosition;
         }
-
-        return games;
-    };
-
-    var getUnlockedGames = function getUnlockedGames(games) {
-        return _.filter(games, function (game) {
-            return !game.locked;
-        });
-    };
-
-    // public
-    this.list = list;
-
-    this.doesMatchupRemain = function () {
-        return _.filter(list, function (game) {
-            return !game.rankedThisIteration && !game.locked;
-        }).length >= 2;
-    };
-
-    this.getFlickchartMatchup = function () {
-        var self = this;
-
-        // If there's only one game to sort, it is already sorted
-        if (self.list.length <= 1) {
-            lockAll();
-        } else {
-            if (!self.doesMatchupRemain()) {
-                // All games have been visited at least once, start over
-                self.list = unlockAll(self.list);
+    }, {
+        key: 'unlockAll',
+        value: function unlockAll(games) {
+            for (var i = 0; i < games.length; i++) {
+                games[i].locked = false;
+                games[i].rankedThisIteration = false;
             }
-            if (self.doesMatchupRemain()) {
-                var game1 = self.getFirstNotLockedOrRanked();
-                var game1Index = _.indexOf(self.list, game1);
-                var game2 = self.getOpponent(self.list, game1, game_matchups);
-                var game2Index = _.indexOf(self.list, game2);
-
-                return new battle(game1, game2, game1Index, game2Index);
-            }
+            return games;
         }
+    }, {
+        key: 'lockCompletelySortedGames',
+        value: function lockCompletelySortedGames(games, matchups) {
+            for (var i = 0; i < games.length; i++) {
+                var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
+                var gamesUnlockedExcludingCurrentGameCount = Games.getUnlockedGames(games).length - 1;
 
-        return new battle();
-    };
+                if (!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
+                    games = Games.lock(games, i, true);
+                } else {
+                    break;
+                }
+            }
 
-    this.setFlickchartMatchup = function (battleResult) {
-        this.list = rankGames(this.list, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
-        this.sortList();
+            for (var i = games.length - 1; i >= 0; i--) {
+                var gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
+                var gamesUnlockedExcludingCurrentGameCount = Games.getUnlockedGames(games).length - 1;
 
-        console.log(game_matchups.toString());
-    };
+                if (!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
+                    games = Games.lock(games, i, true);
+                } else {
+                    break;
+                }
+            }
 
-    this.getFirstNotLockedOrRanked = function () {
-        return _.find(list, function (game) {
-            return !game.locked && !game.rankedThisIteration;
-        });
-    };
+            return games;
+        }
+    }, {
+        key: 'logMatchup',
+        value: function logMatchup(matchups, winner, loser) {
+            var match = new matchup(winner, loser);
 
-    this.getOpponent = function (games, game1, matchups) {
-        var game2 = _.find(games, function (game) {
-            return !game.locked && !game.rankedThisIteration && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
-        });
+            matchups.add(match);
 
-        if (game2 === undefined) {
-            game2 = _.find(games, function (game) {
-                return !game.locked && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
+            return matchups;
+        }
+    }, {
+        key: 'rankGames',
+        value: function rankGames(list, game_matchups, gameIndex1, gameIndex2, isFirstBetter) {
+            if (isFirstBetter) {
+                list[gameIndex1].wins += 1;
+                list[gameIndex2].losses += 1;
+                game_matchups = Games.logMatchup(game_matchups, list[gameIndex1].id, list[gameIndex2].id);
+                list = Games.reposition(list, gameIndex1, gameIndex2);
+            } else {
+                list[gameIndex1].losses += 1;
+                list[gameIndex2].wins += 1;
+                game_matchups = Games.logMatchup(game_matchups, list[gameIndex2].id, list[gameIndex1].id);
+                list = Games.reposition(list, gameIndex2, gameIndex1);
+            }
+
+            list[gameIndex1].rankedThisIteration = true;
+            list[gameIndex2].rankedThisIteration = true;
+            list = Games.lockCompletelySortedGames(list, game_matchups);
+
+            return { list: list, game_matchups: game_matchups };
+        }
+    }, {
+        key: 'reposition',
+        value: function reposition(games, winnerIndex, loserIndex) {
+            var winnerPosition = games[winnerIndex].position;
+            var loserPosition = games[loserIndex].position;
+
+            // if winner is positioned above loser
+            if (winnerPosition < loserPosition) {
+                var winner = games[winnerIndex];
+                var loser = games[loserIndex];
+                var gamesRankedAboveWinner = getAllRankedHigher(winner.id);
+                var gamesRankedBelowLoser = getAllRankedLower(loser.id);
+
+                if (winner.differential() > 0) {
+                    var newPosition = winner.position - winner.differential();
+
+                    for (var i = winnerPosition - 1; i >= newPosition; i--) {
+                        if (games[i].locked || _.contains(gamesRankedAboveWinner, games[i].id)) {
+                            newPosition = i + 1;
+                            break;
+                        } else {
+                            games[i].position += 1;
+                        }
+                    }
+
+                    games[winnerIndex].position = newPosition;
+                }
+
+                if (loser.differential() < 0) {
+                    var newPosition = loser.position - loser.differential();
+
+                    for (var i = loserPosition + 1; i <= newPosition; i++) {
+                        if (games[i].locked || _.contains(gamesRankedBelowLoser, games[i].id)) {
+                            newPosition = i - 1;
+                            break;
+                        } else {
+                            games[i].position -= 1;
+                        }
+                    }
+
+                    games[loserIndex].position = newPosition;
+                }
+            } else {
+                _.map(games, function (item) {
+                    if (item.position >= loserPosition && item.position < winnerPosition) item.position += 1;
+                });
+
+                games[winnerIndex].position = loserPosition;
+            }
+
+            return games;
+        }
+    }, {
+        key: 'getUnlockedGames',
+        value: function getUnlockedGames(games) {
+            return _.filter(games, function (game) {
+                return !game.locked;
             });
         }
 
-        // If game2 is still undefined, then all possible matchups have been evaluated
-        if (game2 === undefined) {
-            console.warn("Thomas: All possible matchups have been evaluated by the user.");
+        // public
+
+    }]);
+
+    function Games(list) {
+        _classCallCheck(this, Games);
+
+        this.list = list;
+        this.game_matchups = new matchups();
+    }
+
+    _createClass(Games, [{
+        key: 'doesMatchupRemain',
+        value: function doesMatchupRemain() {
+            return _.filter(this.list, function (game) {
+                return !game.rankedThisIteration && !game.locked;
+            }).length >= 2;
+        }
+    }, {
+        key: 'getFlickchartMatchup',
+        value: function getFlickchartMatchup() {
+            // If there's only one game to sort, it is already sorted
+            if (this.list.length <= 1) {
+                this.list = Games.lockAll(this.list);
+            } else {
+                if (!this.doesMatchupRemain()) {
+                    // All games have been visited at least once, start over
+                    this.list = Games.unlockAll(this.list);
+                }
+                if (this.doesMatchupRemain()) {
+                    var game1 = this.getFirstNotLockedOrRanked();
+                    var game1Index = _.indexOf(this.list, game1);
+                    var game2 = this.getOpponent(this.list, game1, this.game_matchups);
+                    var game2Index = _.indexOf(this.list, game2);
+
+                    return new battle(game1, game2, game1Index, game2Index);
+                }
+            }
+
+            return new battle();
+        }
+    }, {
+        key: 'setFlickchartMatchup',
+        value: function setFlickchartMatchup(battleResult) {
+            var _Games$rankGames = Games.rankGames(this.list, this.game_matchups, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
+
+            var list = _Games$rankGames.list;
+            var game_matchups = _Games$rankGames.game_matchups;
+
+            this.list = list;
+            this.game_matchups = game_matchups;
+            this.sortList();
+
+            console.log(this.game_matchups.toString());
+        }
+    }, {
+        key: 'getFirstNotLockedOrRanked',
+        value: function getFirstNotLockedOrRanked() {
+            return _.find(this.list, function (game) {
+                return !game.locked && !game.rankedThisIteration;
+            });
+        }
+    }, {
+        key: 'getOpponent',
+        value: function getOpponent(games, game1, matchups) {
+            var game2 = _.find(games, function (game) {
+                return !game.locked && !game.rankedThisIteration && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
+            });
+
+            if (game2 === undefined) {
+                game2 = _.find(games, function (game) {
+                    return !game.locked && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
+                });
+            }
+
+            // If game2 is still undefined, then all possible matchups have been evaluated
+            if (game2 === undefined) {
+                console.warn("Thomas: All possible matchups have been evaluated by the user.");
+            }
+
+            return game2;
+        }
+    }, {
+        key: 'quickSort',
+        value: function quickSort() {}
+    }, {
+        key: 'sortList',
+        value: function sortList() {
+            this.list.sort(Games.compareGames);
+        }
+    }, {
+        key: 'addGame',
+        value: function addGame(game) {
+            this.list.push(game);
         }
 
-        return game2;
-    };
+        /**
+        * ToString for games.
+        * @method
+        */
 
-    this.quickSort = function () {};
+    }, {
+        key: 'toString',
+        value: function toString() {
+            return this.list.toString();
+        }
+    }]);
 
-    this.sortList = function () {
-        this.list.sort(compareGames);
-    };
-
-    this.addGame = function (game) {
-        this.list.push(game);
-    };
-};
-/**
- * ToString for games.
- * @method
- */
-games.prototype.toString = function () {
-    return this.list.toString();
-};
+    return Games;
+})();
 
 /**
  * A matchup of two games.
@@ -290,6 +322,7 @@ games.prototype.toString = function () {
  * @param {string} winner - The winner of the matchup.
  * @param {string} loser - The loser of the matchup.
  */
+
 var matchup = function matchup(winner, loser) {
     this.winner = winner;
     this.loser = loser;
@@ -430,7 +463,7 @@ var thomas = function thomas() {
     // Public
     var public_methods = {
         init: function init() {
-            games_object = new games([]);
+            games_object = new Games([]);
             return this;
         },
         debug: function debug() {

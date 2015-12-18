@@ -20,10 +20,10 @@ class Game {
     }
     
     differential () {
-        return wins - losses;
+        return this.wins - this.losses;
     }
     
-    toString() {
+    toString () {
         return this.name;
     }
 }
@@ -35,10 +35,8 @@ class Game {
  * @class
  * @param {array} list - An array of games.
  */
-var games = function(list) {
+class Games {
     // private
-    var game_matchups = new matchups();
-    
     /**
      * Compare the positions of two games.
      * @method
@@ -46,28 +44,22 @@ var games = function(list) {
      * @param {game} game2 - The second game to compare by position.
      * @returns 
      */
-    var compareGames = function(game1, game2) {
-        if (game1.position < game2.position)
-            return -1;
-        
-        if (game1.position > game2.position)
-            return 1;
-      
-        return 0;
+    static compareGames (game1, game2) {
+        return game1.position - game2.position;
     }
     
-    var lock = function(games, index, lock) {
+    static lock (games, index, lock) {
         var gameToLock = games[index];
         gameToLock.locked = lock;
         games[index] = gameToLock;
         return games;
     }
     
-    var lockAll = function(games) {
-        return _.each(games, function(element, index, list) {return lock(list, index, true);});
+    static lockAll (games) {
+        return _.each(games, function(element, index, list) {return Games.lock(list, index, true);});
     }
     
-    var unlockAll = function(games) {
+    static unlockAll (games) {
         for (var i = 0; i < games.length; i++) {
             games[i].locked = false;
             games[i].rankedThisIteration = false;
@@ -75,14 +67,14 @@ var games = function(list) {
         return games;
     }
     
-    var lockCompletelySortedGames = function(games, matchups) {
+    static lockCompletelySortedGames (games, matchups) {
         for(var i = 0; i < games.length; i++)
         {
             var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
-            var gamesUnlockedExcludingCurrentGameCount = getUnlockedGames(games).length - 1;
+            var gamesUnlockedExcludingCurrentGameCount = Games.getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = lock(games, i, true);
+                games = Games.lock(games, i, true);
             }
             else {
                 break;
@@ -92,10 +84,10 @@ var games = function(list) {
         for(var i = games.length - 1; i >= 0; i--)
         {
             var gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
-            var gamesUnlockedExcludingCurrentGameCount = getUnlockedGames(games).length - 1;
+            var gamesUnlockedExcludingCurrentGameCount = Games.getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = lock(games, i, true);
+                games = Games.lock(games, i, true);
             }
             else {
                 break;
@@ -105,7 +97,7 @@ var games = function(list) {
         return games;
     }
     
-    var logMatchup = function(matchups, winner, loser) {
+    static logMatchup (matchups, winner, loser) {
         var match = new matchup(winner, loser);
         
         matchups.add(match);
@@ -113,29 +105,28 @@ var games = function(list) {
         return matchups;
     }
     
-    //todo: pass game_matchups into rankGames as a parameter?
-    var rankGames = function(games, gameIndex1, gameIndex2, isFirstBetter) {
+    static rankGames (list, game_matchups, gameIndex1, gameIndex2, isFirstBetter) {        
         if(isFirstBetter) {
-            games[gameIndex1].wins += 1;
-            games[gameIndex2].losses += 1;
-            game_matchups = logMatchup(game_matchups, games[gameIndex1].id, games[gameIndex2].id);
-            games = reposition(games, gameIndex1, gameIndex2);
+            list[gameIndex1].wins += 1;
+            list[gameIndex2].losses += 1;
+            game_matchups = Games.logMatchup(game_matchups, list[gameIndex1].id, list[gameIndex2].id);
+            list = Games.reposition(list, gameIndex1, gameIndex2);
         }
         else {
-            games[gameIndex1].losses += 1;
-            games[gameIndex2].wins += 1;
-            game_matchups = logMatchup(game_matchups, games[gameIndex2].id, games[gameIndex1].id);
-            games = reposition(games, gameIndex2, gameIndex1);
+            list[gameIndex1].losses += 1;
+            list[gameIndex2].wins += 1;
+            game_matchups = Games.logMatchup(game_matchups, list[gameIndex2].id, list[gameIndex1].id);
+            list = Games.reposition(list, gameIndex2, gameIndex1);
         }
         
-        games[gameIndex1].rankedThisIteration = true;
-        games[gameIndex2].rankedThisIteration = true;
-        games = lockCompletelySortedGames(games, game_matchups);
+        list[gameIndex1].rankedThisIteration = true;
+        list[gameIndex2].rankedThisIteration = true;
+        list = Games.lockCompletelySortedGames(list, game_matchups);
         
-        return games;
+        return {list, game_matchups};
     }
     
-    var reposition = function(games, winnerIndex, loserIndex) {
+    static reposition (games, winnerIndex, loserIndex) {
         var winnerPosition = games[winnerIndex].position;
         var loserPosition = games[loserIndex].position;
         
@@ -191,36 +182,37 @@ var games = function(list) {
         return games;
     }
     
-    var getUnlockedGames = function(games) {
+    static getUnlockedGames (games) {
         return _.filter(games, function(game) {return !game.locked});
     }
     
     
     // public
-    this.list = list;
+    constructor (list) {
+        this.list = list;
+        this.game_matchups = new matchups();
+    }
     
-    this.doesMatchupRemain = function() {
-        return _.filter(list, function(game) {
+    doesMatchupRemain () {
+        return _.filter(this.list, function(game) {
             return !game.rankedThisIteration && !game.locked;
         }).length >= 2;
     }
     
-    this.getFlickchartMatchup = function() {
-        var self = this;
-        
+    getFlickchartMatchup () {
         // If there's only one game to sort, it is already sorted
-        if (self.list.length <= 1) {
-            lockAll();
+        if (this.list.length <= 1) {
+            this.list = Games.lockAll(this.list);
         } else {
-            if (!self.doesMatchupRemain()) {
+            if (!this.doesMatchupRemain()) {
                 // All games have been visited at least once, start over
-                self.list = unlockAll(self.list);
+                this.list = Games.unlockAll(this.list);
             }
-            if (self.doesMatchupRemain()) {
-                var game1 = self.getFirstNotLockedOrRanked();
-                var game1Index = _.indexOf(self.list, game1);
-                var game2 = self.getOpponent(self.list, game1, game_matchups);
-                var game2Index = _.indexOf(self.list, game2);
+            if (this.doesMatchupRemain()) {
+                var game1 = this.getFirstNotLockedOrRanked();
+                var game1Index = _.indexOf(this.list, game1);
+                var game2 = this.getOpponent(this.list, game1, this.game_matchups);
+                var game2Index = _.indexOf(this.list, game2);
                 
                 return new battle(game1, game2, game1Index, game2Index);
             }
@@ -229,20 +221,27 @@ var games = function(list) {
         return new battle();
     }
     
-    this.setFlickchartMatchup = function(battleResult) {
-        this.list = rankGames(this.list, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
+    setFlickchartMatchup (battleResult) {
+        var {list, game_matchups} = Games.rankGames(
+            this.list, 
+            this.game_matchups, 
+            battleResult.game1Index, 
+            battleResult.game2Index, 
+            battleResult.winnerIndex);
+        this.list = list;
+        this.game_matchups = game_matchups;
         this.sortList();
         
-        console.log(game_matchups.toString());
+        console.log(this.game_matchups.toString());
     }
     
-    this.getFirstNotLockedOrRanked = function() {
-        return _.find(list, function(game) {
+    getFirstNotLockedOrRanked () {
+        return _.find(this.list, function(game) {
             return !game.locked && !game.rankedThisIteration;
         });
     }
     
-    this.getOpponent = function(games, game1, matchups) {
+    getOpponent (games, game1, matchups) {
         var game2 = _.find(games, function(game) {
             return !game.locked && !game.rankedThisIteration && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
         });
@@ -261,24 +260,25 @@ var games = function(list) {
         return game2;
     }
     
-    this.quickSort = function() {
+    quickSort () {
         
     }
     
-    this.sortList = function() {
-        this.list.sort(compareGames);
+    sortList () {
+        this.list.sort(Games.compareGames);
     }
     
-    this.addGame = function(game) {
+    addGame (game) {
         this.list.push(game);
     }
-}
-/**
- * ToString for games.
- * @method
- */
-games.prototype.toString = function () {
-    return this.list.toString();
+    
+    /**
+    * ToString for games.
+    * @method
+    */
+    toString () {
+        return this.list.toString();
+    }
 }
 
 
@@ -440,7 +440,7 @@ var thomas = function () {
     // Public
     var public_methods = {
         init: function() {
-            games_object = new games([]);
+            games_object = new Games([]);
             return this;
         },
         debug: function() {
