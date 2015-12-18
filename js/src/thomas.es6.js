@@ -92,7 +92,7 @@ class GamesHelpers {
     }
     
     static logMatchup (matchups, winner, loser) {
-        var match = new matchup(winner, loser);
+        var match = new Matchup(winner, loser);
         
         matchups.add(match);
         
@@ -300,17 +300,21 @@ class Games {
  * @param {string} winner - The winner of the matchup.
  * @param {string} loser - The loser of the matchup.
  */
-var matchup = function (winner, loser) {
-    this.winner = winner;
-    this.loser = loser;
+class Matchup {
+    constructor (winner, loser) {
+        this.winner = winner;
+        this.loser = loser;
+    }
+    
+    /**
+    * ToString for a matchup.
+    * @method
+    */
+    toString () {
+        return this.winner + '>' + this.loser;
+    }
 }
-/**
- * ToString for a matchup.
- * @method
- */
-matchup.prototype.toString = function () {
-    return this.winner + '>' + this.loser;
-}
+
 
 
 /**

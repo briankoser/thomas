@@ -118,7 +118,7 @@ var GamesHelpers = (function () {
     }, {
         key: 'logMatchup',
         value: function logMatchup(matchups, winner, loser) {
-            var match = new matchup(winner, loser);
+            var match = new Matchup(winner, loser);
 
             matchups.add(match);
 
@@ -340,17 +340,28 @@ var Games = (function () {
  * @param {string} loser - The loser of the matchup.
  */
 
-var matchup = function matchup(winner, loser) {
-    this.winner = winner;
-    this.loser = loser;
-};
-/**
- * ToString for a matchup.
- * @method
- */
-matchup.prototype.toString = function () {
-    return this.winner + '>' + this.loser;
-};
+var Matchup = (function () {
+    function Matchup(winner, loser) {
+        _classCallCheck(this, Matchup);
+
+        this.winner = winner;
+        this.loser = loser;
+    }
+
+    /**
+    * ToString for a matchup.
+    * @method
+    */
+
+    _createClass(Matchup, [{
+        key: 'toString',
+        value: function toString() {
+            return this.winner + '>' + this.loser;
+        }
+    }]);
+
+    return Matchup;
+})();
 
 /**
  * A request for the user to pick which of two games he prefers.
@@ -361,6 +372,7 @@ matchup.prototype.toString = function () {
  * @param {string} game2Index - The index of the second game.
  * @param {string} winner - The index of the winner of the matchup.
  */
+
 var battle = function battle(game1, game2, game1Index, game2Index, winner) {
     this.game1 = game1;
     this.game2 = game2;
