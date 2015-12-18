@@ -2,6 +2,28 @@
     CLASSES
 **************************************************************/
 /**
+ * A request for the user to pick which of two games he prefers.
+ * @class
+ * @param {string} game1 - The first game.
+ * @param {string} game2 - The second game.
+ * @param {string} game1Index - The index of the first game.
+ * @param {string} game2Index - The index of the second game.
+ * @param {string} winner - The index of the winner of the matchup.
+ */
+class Battle {
+    constructor (game1, game2, game1Index, game2Index, winner) {
+        this.game1 = game1;
+        this.game2 = game2;
+        this.game1Index = game1Index;
+        this.game2Index = game2Index;
+        this.winnerIndex = winner;
+        this.isNull = typeof game1 == 'undefined';
+    }
+}
+
+
+
+/**
  * A board game with rank information.
  * @class
  * @param {int} id - A unique id.
@@ -193,6 +215,7 @@ class GamesHelpers {
 }
 
 
+
 /**
  * A collection of games.
  * @class
@@ -225,11 +248,11 @@ class Games {
                 var game2 = this.getOpponent(this.list, game1, this.game_matchups);
                 var game2Index = _.indexOf(this.list, game2);
                 
-                return new battle(game1, game2, game1Index, game2Index);
+                return new Battle(game1, game2, game1Index, game2Index);
             }
         }
         
-        return new battle();
+        return new Battle();
     }
     
     setFlickchartMatchup (battleResult) {
@@ -315,25 +338,6 @@ class Matchup {
     }
 }
 
-
-
-/**
- * A request for the user to pick which of two games he prefers.
- * @class
- * @param {string} game1 - The first game.
- * @param {string} game2 - The second game.
- * @param {string} game1Index - The index of the first game.
- * @param {string} game2Index - The index of the second game.
- * @param {string} winner - The index of the winner of the matchup.
- */
-var battle = function (game1, game2, game1Index, game2Index, winner) {
-    this.game1 = game1;
-    this.game2 = game2;
-    this.game1Index = game1Index;
-    this.game2Index = game2Index;
-    this.winnerIndex = winner;
-    this.isNull = typeof game1 == 'undefined';
-}
 
 
 /**
