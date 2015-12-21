@@ -355,6 +355,34 @@ var Games = (function () {
 })();
 
 /**
+ * A utility class to hold static helpers e.g. for arrays
+ * @class
+ */
+
+var Helpers = (function () {
+    function Helpers() {
+        _classCallCheck(this, Helpers);
+    }
+
+    _createClass(Helpers, null, [{
+        key: "flattenArray",
+
+        /**
+         * Move all items from nested arrays to the top-level array.
+         * @method
+         * @param {array} list - The array to flatten.
+         */
+        value: function flattenArray(list) {
+            list.reduce(function (a, b) {
+                return a.concat(Array.isArray(b) ? Helpers.flattenArray(b) : b);
+            }, []);
+        }
+    }]);
+
+    return Helpers;
+})();
+
+/**
  * A matchup of two games.
  * @class
  * @param {string} winner - The winner of the matchup.
@@ -424,7 +452,7 @@ var Matchups = (function () {
                     return self.getAllRankedLower(item, true);
                 });
 
-                losers = losers.concat(_.flatten(children));
+                losers = losers.concat(Helpers.flattenArray(children));
 
                 if (includeId) losers.push(id);
 
@@ -454,7 +482,7 @@ var Matchups = (function () {
                     return self.getAllRankedHigher(item, true);
                 });
 
-                winners = winners.concat(_.flatten(parents));
+                winners = winners.concat(Helpers.flattenArray(parents));
 
                 if (includeId) winners.push(id);
 

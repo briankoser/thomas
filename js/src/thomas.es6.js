@@ -309,6 +309,25 @@ class Games {
 
 
 /**
+ * A utility class to hold static helpers e.g. for arrays
+ * @class
+ */
+class Helpers {
+    /**
+     * Move all items from nested arrays to the top-level array.
+     * @method
+     * @param {array} list - The array to flatten.
+     */
+    static flattenArray (list) {
+      list.reduce(
+        (a, b) => a.concat(Array.isArray(b) ? Helpers.flattenArray(b) : b), []
+      );   
+    }
+}
+
+
+
+/**
  * A matchup of two games.
  * @class
  * @param {string} winner - The winner of the matchup.
@@ -363,7 +382,7 @@ class Matchups {
                 return self.getAllRankedLower(item, true);
             });
             
-            losers = losers.concat(_.flatten(children));
+            losers = losers.concat(Helpers.flattenArray(children));
             
             if(includeId)
                 losers.push(id);
@@ -391,7 +410,7 @@ class Matchups {
                 return self.getAllRankedHigher(item, true);
             });
             
-            winners = winners.concat(_.flatten(parents));
+            winners = winners.concat(Helpers.flattenArray(parents));
             
             if(includeId)
                 winners.push(id);
