@@ -371,10 +371,7 @@ class Matchups {
     }
     
     //todo: pass in list as parameter
-    getAllRankedLower (id, includeId) {
-        if (includeId == undefined)
-            includeId = false;
-        
+    getAllRankedLower (id, includeId = false) {
         var losers = this.list.map(item => item.winner === id ? item.loser : undefined).filter(item => item);
         
         if (losers.length == 0) {
@@ -392,10 +389,7 @@ class Matchups {
     }
     
     //todo: pass in list as parameter
-    getAllRankedHigher (id, includeId) {
-        if (includeId == undefined)
-            includeId = false;
-        
+    getAllRankedHigher (id, includeId = false) {
         var winners = this.list.map(item => item.loser === id ? item.winner : undefined).filter(item => item);
         
         if (winners.length == 0) {

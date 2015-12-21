@@ -448,10 +448,10 @@ var Matchups = (function () {
 
     }, {
         key: 'getAllRankedLower',
-        value: function getAllRankedLower(id, includeId) {
+        value: function getAllRankedLower(id) {
             var _this = this;
 
-            if (includeId == undefined) includeId = false;
+            var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
             var losers = this.list.map(function (item) {
                 return item.winner === id ? item.loser : undefined;
@@ -478,10 +478,10 @@ var Matchups = (function () {
 
     }, {
         key: 'getAllRankedHigher',
-        value: function getAllRankedHigher(id, includeId) {
+        value: function getAllRankedHigher(id) {
             var _this2 = this;
 
-            if (includeId == undefined) includeId = false;
+            var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
             var winners = this.list.map(function (item) {
                 return item.loser === id ? item.winner : undefined;
