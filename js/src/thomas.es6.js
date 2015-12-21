@@ -77,10 +77,10 @@ class GamesUtilities {
     }
     
     static lockCompletelySortedGames (games, matchups) {
-        for(var i = 0; i < games.length; i++)
+        for(let i = 0; i < games.length; i++)
         {
-            var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
-            var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
+            const gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
+            const gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
                 games = GamesUtilities.lockGame(games, i);
@@ -89,10 +89,10 @@ class GamesUtilities {
             }
         }
         
-        for(var i = games.length - 1; i >= 0; i--)
+        for(let i = games.length - 1; i >= 0; i--)
         {
-            var gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
-            var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
+            const gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
+            const gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
                 games = GamesUtilities.lockGame(games, i);
@@ -113,9 +113,7 @@ class GamesUtilities {
     
     static logMatchup (matchups, winner, loser) {
         var match = new Matchup(winner, loser);
-        
         matchups.add(match);
-        
         return matchups;
     }
     
@@ -140,20 +138,19 @@ class GamesUtilities {
     }
     
     static reposition (games, winnerIndex, loserIndex) {
-        var winnerPosition = games[winnerIndex].position;
-        var loserPosition = games[loserIndex].position;
+        const winnerPosition = games[winnerIndex].position;
+        const loserPosition = games[loserIndex].position;
         
         // if winner is positioned above loser
         if(winnerPosition < loserPosition) {
-            var winner = games[winnerIndex];
-            var loser = games[loserIndex];
-            var gamesRankedAboveWinner = getAllRankedHigher(winner.id);
-            var gamesRankedBelowLoser = getAllRankedLower(loser.id);
+            const winner = games[winnerIndex];
+            const loser = games[loserIndex];
             
             if(winner.differential() > 0) {
-                var newPosition = winner.position - winner.differential();
+                let newPosition = winner.position - winner.differential();
+                const gamesRankedAboveWinner = getAllRankedHigher(winner.id);
                 
-                for(var i = winnerPosition  - 1; i >= newPosition; i--) {
+                for(let i = winnerPosition  - 1; i >= newPosition; i--) {
                     if(games[i].locked || gamesRankedAboveWinner.indexOf(games[i].id) > -1) {
                         newPosition = i + 1;
                         break;
@@ -167,9 +164,10 @@ class GamesUtilities {
             
             if(loser.differential() < 0)
             {
-                var newPosition = loser.position - loser.differential();
+                let newPosition = loser.position - loser.differential();
+                const gamesRankedBelowLoser = getAllRankedLower(loser.id);
                 
-                for(var i = loserPosition + 1; i <= newPosition; i++) {
+                for(let i = loserPosition + 1; i <= newPosition; i++) {
                     if(games[i].locked || gamesRankedBelowLoser.indexOf(games[i].id) > -1) {
                         newPosition = i - 1;
                         break;
@@ -193,7 +191,7 @@ class GamesUtilities {
     }
     
     static unlockAll (games) {
-        for (var i = 0; i < games.length; i++) {
+        for (let i = 0; i < games.length; i++) {
             games[i].locked = false;
             games[i].rankedThisIteration = false;
         }
@@ -235,10 +233,10 @@ class Games {
                 this.list = GamesUtilities.unlockAll(this.list);
             }
             if (this.doesMatchupRemain()) {
-                var game1 = this.getFirstNotLockedOrRanked();
-                var game1Index = this.list.indexOf(game1);
-                var game2 = this.getOpponent(this.list, game1, this.game_matchups);
-                var game2Index = this.list.indexOf(game2);
+                const game1 = this.getFirstNotLockedOrRanked();
+                const game1Index = this.list.indexOf(game1);
+                const game2 = this.getOpponent(this.list, game1, this.game_matchups);
+                const game2Index = this.list.indexOf(game2);
                 
                 return new Battle(game1, game2, game1Index, game2Index);
             }
@@ -248,7 +246,7 @@ class Games {
     }
     
     setFlickchartMatchup (battleResult) {
-        var {list, game_matchups} = GamesUtilities.rankGames(
+        const {list, game_matchups} = GamesUtilities.rankGames(
             this.list, 
             this.game_matchups, 
             battleResult.game1Index, 
@@ -387,7 +385,7 @@ class Matchups {
         if (losers.length == 0) {
             return includeId ? [id] : [];
         } else {
-            var children = losers.map(function(item) {
+            const children = losers.map(function(item) {
                 return self.getAllRankedLower(item, true);
             });
             
@@ -415,7 +413,7 @@ class Matchups {
         if (winners.length == 0) {
             return includeId ? [id] : [];
         } else {
-            var parents = winners.map(function(item) {
+            const parents = winners.map(function(item) {
                 return self.getAllRankedHigher(item, true);
             });
             
@@ -433,7 +431,7 @@ class Matchups {
         
         var higher = self.getAllRankedHigher(gameId1);
         var lower = self.getAllRankedLower(gameId1);
-        var all = higher.concat(lower);
+        const all = higher.concat(lower);
         
         return all.indexOf(gameId2) > -1;
     }
@@ -497,7 +495,7 @@ class Thomas {
     
     getComparison () {
         // NOT async
-        var fc = this.games_object.getFlickchartMatchup();
+        const fc = this.games_object.getFlickchartMatchup();
         if (!fc.isNull) {
             return fc;
         } else {
@@ -507,7 +505,7 @@ class Thomas {
     
     promptComparison () {
         this._push_pipeline( () => {
-            var comp = this.getComparison();
+            const comp = this.getComparison();
             if (comp !== undefined && comp.game1 !== undefined && comp.game2 !== undefined) {
                 this.promptUser("Which game do you prefer?", [ 
                     { 
@@ -537,11 +535,11 @@ class Thomas {
     // Buttons: an array of object of the form { text: "link text", click: function() { /* action */ } }
     promptUser (message, buttons) {
         if (document.getElementById("thomas-dialog") != null) {
-            var el = document.getElementById("thomas-dialog");
+            let el = document.getElementById("thomas-dialog");
             el.parentNode.removeChild(el);
         }
         var appendHtml = function (el, str) {
-            var div = document.createElement('div');
+            let div = document.createElement('div');
             div.innerHTML = str;
             while (div.children.length > 0) {
                 el.appendChild(div.children[0]);
@@ -551,7 +549,7 @@ class Thomas {
         // Generate a list of buttons (reverse iterate since we're floating elements right)
         var buttonsHtml = '';
         var buttonEvents = new Array();
-        for (var i = buttons.length - 1; i >= 0; i--) {
+        for (let i = buttons.length - 1; i >= 0; i--) {
             buttons[i].buttonId = 'thomas-dialog-opt-' + i;
             buttonsHtml += '<a id="' + buttons[i].buttonId + '" onclick="test.closePrompt()" href="javascript: void(0)">' + buttons[i].text + '</a>';
         }
@@ -565,7 +563,7 @@ class Thomas {
             '</div>');
             
         // Add events to buttons after adding them to the DOM
-        for (var i = 0; i < buttons.length; i++) {
+        for (let i = 0; i < buttons.length; i++) {
             document.getElementById(buttons[i].buttonId).addEventListener("click", buttons[i].click);
         }
     }

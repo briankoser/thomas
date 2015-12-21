@@ -140,9 +140,7 @@ var GamesUtilities = (function () {
         key: "logMatchup",
         value: function logMatchup(matchups, winner, loser) {
             var match = new Matchup(winner, loser);
-
             matchups.add(match);
-
             return matchups;
         }
     }, {
@@ -176,11 +174,10 @@ var GamesUtilities = (function () {
             if (winnerPosition < loserPosition) {
                 var winner = games[winnerIndex];
                 var loser = games[loserIndex];
-                var gamesRankedAboveWinner = getAllRankedHigher(winner.id);
-                var gamesRankedBelowLoser = getAllRankedLower(loser.id);
 
                 if (winner.differential() > 0) {
                     var newPosition = winner.position - winner.differential();
+                    var gamesRankedAboveWinner = getAllRankedHigher(winner.id);
 
                     for (var i = winnerPosition - 1; i >= newPosition; i--) {
                         if (games[i].locked || gamesRankedAboveWinner.indexOf(games[i].id) > -1) {
@@ -196,6 +193,7 @@ var GamesUtilities = (function () {
 
                 if (loser.differential() < 0) {
                     var newPosition = loser.position - loser.differential();
+                    var gamesRankedBelowLoser = getAllRankedLower(loser.id);
 
                     for (var i = loserPosition + 1; i <= newPosition; i++) {
                         if (games[i].locked || gamesRankedBelowLoser.indexOf(games[i].id) > -1) {
