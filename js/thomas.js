@@ -449,12 +449,12 @@ var Matchups = (function () {
     }, {
         key: "getAllRankedLower",
         value: function getAllRankedLower(id, includeId) {
+            var _this = this;
+
             if (includeId == undefined) includeId = false;
 
-            var self = this;
-
-            var losers = self.list.map(function (item) {
-                if (item.winner == id) return item.loser;
+            var losers = this.list.map(function (item) {
+                return item.winner === id ? item.loser : undefined;
             }).filter(function (item) {
                 return item;
             });
@@ -463,7 +463,7 @@ var Matchups = (function () {
                 return includeId ? [id] : [];
             } else {
                 var children = losers.map(function (item) {
-                    return self.getAllRankedLower(item, true);
+                    return _this.getAllRankedLower(item, true);
                 });
 
                 losers = losers.concat(Utilities.flattenArray(children));
@@ -479,12 +479,12 @@ var Matchups = (function () {
     }, {
         key: "getAllRankedHigher",
         value: function getAllRankedHigher(id, includeId) {
+            var _this2 = this;
+
             if (includeId == undefined) includeId = false;
 
-            var self = this;
-
-            var winners = self.list.map(function (item) {
-                if (item.loser == id) return item.winner;
+            var winners = this.list.map(function (item) {
+                return item.loser === id ? item.winner : undefined;
             }).filter(function (item) {
                 return item;
             });
@@ -493,7 +493,7 @@ var Matchups = (function () {
                 return includeId ? [id] : [];
             } else {
                 var parents = winners.map(function (item) {
-                    return self.getAllRankedHigher(item, true);
+                    return _this2.getAllRankedHigher(item, true);
                 });
 
                 winners = winners.concat(Utilities.flattenArray(parents));
@@ -506,10 +506,8 @@ var Matchups = (function () {
     }, {
         key: "isRanked",
         value: function isRanked(gameId1, gameId2) {
-            var self = this;
-
-            var higher = self.getAllRankedHigher(gameId1);
-            var lower = self.getAllRankedLower(gameId1);
+            var higher = this.getAllRankedHigher(gameId1);
+            var lower = this.getAllRankedLower(gameId1);
             var all = [].concat(_toConsumableArray(higher), _toConsumableArray(lower));
 
             return all.indexOf(gameId2) > -1;
@@ -566,11 +564,11 @@ var Thomas = (function () {
     }, {
         key: "addGame",
         value: function addGame(game_name) {
-            var _this = this;
+            var _this3 = this;
 
             this._push_pipeline(function () {
-                _this.games_object.addGame(new Game(_this.games_object.list.length, -1, game_name));
-                _this._run_pipeline();
+                _this3.games_object.addGame(new Game(_this3.games_object.list.length, -1, game_name));
+                _this3._run_pipeline();
             });
             return this;
         }
@@ -582,11 +580,11 @@ var Thomas = (function () {
     }, {
         key: "debug",
         value: function debug() {
-            var _this2 = this;
+            var _this4 = this;
 
             this._push_pipeline(function () {
-                console.log(_this2.games_object.toString());
-                _this2._run_pipeline();
+                console.log(_this4.games_object.toString());
+                _this4._run_pipeline();
             });
             return this;
         }
@@ -604,26 +602,26 @@ var Thomas = (function () {
     }, {
         key: "promptComparison",
         value: function promptComparison() {
-            var _this3 = this;
+            var _this5 = this;
 
             this._push_pipeline(function () {
-                var comp = _this3.getComparison();
+                var comp = _this5.getComparison();
                 if (comp !== undefined && comp.game1 !== undefined && comp.game2 !== undefined) {
-                    _this3.promptUser("Which game do you prefer?", [{
+                    _this5.promptUser("Which game do you prefer?", [{
                         text: comp.game1.name,
                         click: function click() {
-                            _this3.setComparison(comp, 1);
-                            _this3._run_pipeline();
+                            _this5.setComparison(comp, 1);
+                            _this5._run_pipeline();
                         }
                     }, {
                         text: comp.game2.name,
                         click: function click() {
-                            _this3.setComparison(comp, 2);
-                            _this3._run_pipeline();
+                            _this5.setComparison(comp, 2);
+                            _this5._run_pipeline();
                         }
                     }]);
                 } else {
-                    _this3._run_pipeline();
+                    _this5._run_pipeline();
                 }
             });
             return this;

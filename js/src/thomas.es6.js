@@ -375,19 +375,12 @@ class Matchups {
         if (includeId == undefined)
             includeId = false;
         
-        var self = this;
-        
-        var losers = self.list.map(function(item){
-            if (item.winner == id) 
-                return item.loser;
-        }).filter(item => item);
+        var losers = this.list.map(item => item.winner === id ? item.loser : undefined).filter(item => item);
         
         if (losers.length == 0) {
             return includeId ? [id] : [];
         } else {
-            const children = losers.map(function(item) {
-                return self.getAllRankedLower(item, true);
-            });
+            const children = losers.map(item => this.getAllRankedLower(item, true));
             
             losers = losers.concat(Utilities.flattenArray(children));
             
@@ -403,19 +396,12 @@ class Matchups {
         if (includeId == undefined)
             includeId = false;
         
-        var self = this;
-        
-        var winners = self.list.map(function(item){
-            if (item.loser == id) 
-                return item.winner;
-        }).filter(item => item);
+        var winners = this.list.map(item => item.loser === id ? item.winner : undefined).filter(item => item);
         
         if (winners.length == 0) {
             return includeId ? [id] : [];
         } else {
-            const parents = winners.map(function(item) {
-                return self.getAllRankedHigher(item, true);
-            });
+            const parents = winners.map(item => this.getAllRankedHigher(item, true));
             
             winners = winners.concat(Utilities.flattenArray(parents));
             
@@ -427,10 +413,8 @@ class Matchups {
     }
     
     isRanked (gameId1, gameId2) {
-        var self = this;
-        
-        var higher = self.getAllRankedHigher(gameId1);
-        var lower = self.getAllRankedLower(gameId1);
+        const higher = this.getAllRankedHigher(gameId1);
+        const lower = this.getAllRankedLower(gameId1);
         const all = [...higher, ...lower];
         
         return all.indexOf(gameId2) > -1;
