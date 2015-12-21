@@ -69,7 +69,7 @@ class GamesHelpers {
     }
     
     static getUnlockedGames (games) {
-        return _.filter(games, function(game) {return !game.locked});
+        return games.filter(game => !game.locked);
     }
     
     static lockAll (games) {
@@ -222,9 +222,7 @@ class Games {
     }
     
     doesMatchupRemain () {
-        return _.filter(this.list, function(game) {
-            return !game.rankedThisIteration && !game.locked;
-        }).length >= 2;
+        return this.list.filter(game => !game.rankedThisIteration && !game.locked).length >= 2;
     }
     
     getFlickchartMatchup () {
@@ -357,9 +355,7 @@ class Matchups {
         var losers = self.list.map(function(item){
             if (item.winner == id) 
                 return item.loser;
-        }).filter(function(item){
-            return item;
-        });
+        }).filter(item => item);
         
         if (losers.length == 0) {
             return includeId ? [id] : [];
@@ -387,9 +383,7 @@ class Matchups {
         var winners = self.list.map(function(item){
             if (item.loser == id) 
                 return item.winner;
-        }).filter(function(item){
-            return item;
-        });
+        }).filter(item => item);
         
         if (winners.length == 0) {
             return includeId ? [id] : [];

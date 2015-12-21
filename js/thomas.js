@@ -90,7 +90,7 @@ var GamesHelpers = (function () {
     }, {
         key: "getUnlockedGames",
         value: function getUnlockedGames(games) {
-            return _.filter(games, function (game) {
+            return games.filter(function (game) {
                 return !game.locked;
             });
         }
@@ -257,7 +257,7 @@ var Games = (function () {
     _createClass(Games, [{
         key: "doesMatchupRemain",
         value: function doesMatchupRemain() {
-            return _.filter(this.list, function (game) {
+            return this.list.filter(function (game) {
                 return !game.rankedThisIteration && !game.locked;
             }).length >= 2;
         }
@@ -566,7 +566,7 @@ var Thomas = (function () {
 
             this._push_pipeline(function () {
                 var comp = _this3.getComparison();
-                if (typeof comp !== 'undefined' && comp.game1 !== undefined && comp.game2 !== undefined) {
+                if (comp !== undefined && comp.game1 !== undefined && comp.game2 !== undefined) {
                     _this3.promptUser("Which game do you prefer?", [{
                         text: comp.game1.name,
                         click: function click() {
