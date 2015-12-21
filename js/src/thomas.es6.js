@@ -319,9 +319,18 @@ class Helpers {
      * @param {array} list - The array to flatten.
      */
     static flattenArray (list) {
-      list.reduce(
+      return list.reduce(
         (a, b) => a.concat(Array.isArray(b) ? Helpers.flattenArray(b) : b), []
       );   
+    }
+    
+    /**
+     * Remove all duplicate items from an array.
+     * @method
+     * @param {array} list - The array from which to remove duplicates.
+     */
+    static uniqueArray (list) {
+        return list.filter( (value, index) => list.indexOf(value) === index);
     }
 }
 
@@ -387,7 +396,7 @@ class Matchups {
             if(includeId)
                 losers.push(id);
             
-            return _.uniq(losers);
+            return Helpers.uniqueArray(losers);
         }
     }
     
@@ -415,7 +424,7 @@ class Matchups {
             if(includeId)
                 winners.push(id);
             
-            return _.uniq(winners);
+            return Helpers.uniqueArray(winners);
         }
     }
     

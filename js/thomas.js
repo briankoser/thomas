@@ -373,9 +373,23 @@ var Helpers = (function () {
          * @param {array} list - The array to flatten.
          */
         value: function flattenArray(list) {
-            list.reduce(function (a, b) {
+            return list.reduce(function (a, b) {
                 return a.concat(Array.isArray(b) ? Helpers.flattenArray(b) : b);
             }, []);
+        }
+
+        /**
+         * Remove all duplicate items from an array.
+         * @method
+         * @param {array} list - The array from which to remove duplicates.
+         */
+
+    }, {
+        key: "uniqueArray",
+        value: function uniqueArray(list) {
+            return list.filter(function (value, index) {
+                return list.indexOf(value) === index;
+            });
         }
     }]);
 
@@ -456,7 +470,7 @@ var Matchups = (function () {
 
                 if (includeId) losers.push(id);
 
-                return _.uniq(losers);
+                return Helpers.uniqueArray(losers);
             }
         }
 
@@ -486,7 +500,7 @@ var Matchups = (function () {
 
                 if (includeId) winners.push(id);
 
-                return _.uniq(winners);
+                return Helpers.uniqueArray(winners);
             }
         }
     }, {
@@ -498,7 +512,7 @@ var Matchups = (function () {
             var lower = self.getAllRankedLower(gameId1);
             var all = higher.concat(lower);
 
-            return _.contains(all, gameId2);
+            return all.indexOf(gameId2) > -1;
         }
 
         /**
