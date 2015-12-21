@@ -236,9 +236,9 @@ class Games {
             }
             if (this.doesMatchupRemain()) {
                 var game1 = this.getFirstNotLockedOrRanked();
-                var game1Index = _.indexOf(this.list, game1);
+                var game1Index = this.list.indexOf(game1);
                 var game2 = this.getOpponent(this.list, game1, this.game_matchups);
-                var game2Index = _.indexOf(this.list, game2);
+                var game2Index = this.list.indexOf(game2);
                 
                 return new Battle(game1, game2, game1Index, game2Index);
             }
