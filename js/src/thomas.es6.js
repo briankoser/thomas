@@ -181,7 +181,7 @@ class GamesHelpers {
                 games[loserIndex].position = newPosition;
             }
         } else {
-            _.map(games, function(item) {
+            games.map(item => {
                 if(item.position >= loserPosition && item.position < winnerPosition)
                     item.position += 1;
             });
