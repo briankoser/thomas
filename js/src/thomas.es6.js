@@ -277,7 +277,7 @@ class Games {
         
         // If game2 is still undefined, then all possible matchups have been evaluated
         if (game2 === undefined) {
-            console.warn("Thomas: All possible matchups have been evaluated by the user.");
+            console.warn('Thomas: All possible matchups have been evaluated by the user.');
         }
                 
         return game2;
@@ -466,7 +466,7 @@ class Thomas {
     }
     
     closePrompt () {  
-        document.getElementById("thomas-dialog").style.display = "none";
+        document.getElementById('thomas-dialog').style.display = 'none';
     }
         
     debug () {
@@ -483,7 +483,7 @@ class Thomas {
         if (!fc.isNull) {
             return fc;
         } else {
-            console.warn("Thomas: Cannot generate comparison.");
+            console.warn('Thomas: Cannot generate comparison.');
         }
     }
     
@@ -491,7 +491,7 @@ class Thomas {
         this._push_pipeline( () => {
             const comp = this.getComparison();
             if (comp !== undefined && comp.game1 !== undefined && comp.game2 !== undefined) {
-                this.promptUser("Which game do you prefer?", [ 
+                this.promptUser('Which game do you prefer?', [ 
                     { 
                         text: comp.game1.name, 
                         click: () => { 
@@ -518,8 +518,8 @@ class Thomas {
     // Message: the message to prompt the user
     // Buttons: an array of object of the form { text: "link text", click: function() { /* action */ } }
     promptUser (message, buttons) {
-        if (document.getElementById("thomas-dialog") != null) {
-            let el = document.getElementById("thomas-dialog");
+        if (document.getElementById('thomas-dialog') != null) {
+            let el = document.getElementById('thomas-dialog');
             el.parentNode.removeChild(el);
         }
         var appendHtml = function (el, str) {
@@ -548,7 +548,7 @@ class Thomas {
             
         // Add events to buttons after adding them to the DOM
         for (let i = 0; i < buttons.length; i++) {
-            document.getElementById(buttons[i].buttonId).addEventListener("click", buttons[i].click);
+            document.getElementById(buttons[i].buttonId).addEventListener('click', buttons[i].click);
         }
     }
         
@@ -558,7 +558,7 @@ class Thomas {
             comparison.winnerIndex = selection;
             this.games_object.setFlickchartMatchup(comparison);
         } else {
-            console.warn("Thomas: Selection must be either 1 or 2.")
+            console.warn('Thomas: Selection must be either 1 or 2.')
         }
         return this;
     }
