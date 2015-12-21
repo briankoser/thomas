@@ -488,100 +488,120 @@ var Matchups = (function () {
     return Matchups;
 })();
 
-var thomas = function thomas() {
+var Thomas = (function () {
+    function Thomas() {
+        _classCallCheck(this, Thomas);
 
-    // Private
-    var games_object;
-    var process_pipeline = new Array();
-    var process_running = false;
+        this.games_object = new Games([]);
+        this.process_pipeline = new Array();
+        this.process_running = false;
+    }
 
-    var push_pipeline = function push_pipeline(action) {
-        process_pipeline.push(action);
-        if (!process_running) {
-            process_running = true;
-            run_pipeline();
+    // private
+
+    _createClass(Thomas, [{
+        key: '_push_pipeline',
+        value: function _push_pipeline(action) {
+            this.process_pipeline.push(action);
+            if (!this.process_running) {
+                this.process_running = true;
+                this._run_pipeline();
+            }
         }
-    };
-
-    var run_pipeline = function run_pipeline() {
-        if (process_pipeline.length) {
-            // Dequeue and execute
-            process_pipeline.shift()();
-        } else {
-            process_running = false;
+    }, {
+        key: '_run_pipeline',
+        value: function _run_pipeline() {
+            if (this.process_pipeline.length) {
+                // Dequeue and execute
+                this.process_pipeline.shift()();
+            } else {
+                this.process_running = false;
+            }
         }
-    };
 
-    // Public
-    var public_methods = {
-        init: function init() {
-            games_object = new Games([]);
-            return this;
-        },
-        debug: function debug() {
-            push_pipeline(function () {
-                console.log(games_object.toString());
-                run_pipeline();
+        // public
+
+    }, {
+        key: 'addGame',
+        value: function addGame(game_name) {
+            var _this = this;
+
+            this._push_pipeline(function () {
+                _this.games_object.addGame(new Game(_this.games_object.list.length, -1, game_name));
+                _this._run_pipeline();
             });
             return this;
-        },
-        addGame: function addGame(game_name) {
-            push_pipeline(function () {
-                games_object.addGame(new Game(games_object.list.length, -1, game_name));
-                run_pipeline();
+        }
+    }, {
+        key: 'debug',
+        value: function debug() {
+            var _this2 = this;
+
+            this._push_pipeline(function () {
+                console.log(_this2.games_object.toString());
+                _this2._run_pipeline();
             });
             return this;
-        },
-        getComparison: function getComparison() {
+        }
+    }, {
+        key: 'getComparison',
+        value: function getComparison() {
             // NOT async
-            var fc = games_object.getFlickchartMatchup();
+            var fc = this.games_object.getFlickchartMatchup();
             if (!fc.isNull) {
                 return fc;
             } else {
                 console.warn("Thomas: Cannot generate comparison.");
             }
-        },
-        setComparison: function setComparison(comparison, selection) {
-            // NOT async
-            if (selection == 1 || selection == 2) {
-                comparison.winnerIndex = selection;
-                games_object.setFlickchartMatchup(comparison);
-            } else {
-                console.warn("Thomas: Selection must be either 1 or 2.");
-            }
-            return this;
-        },
-        promptComparison: function promptComparison() {
-            push_pipeline(function () {
-                var comp = public_methods.getComparison();
+        }
+    }, {
+        key: 'promptComparison',
+        value: function promptComparison() {
+            var _this3 = this;
+
+            this._push_pipeline(function () {
+                var comp = _this3.getComparison();
                 if (typeof comp !== 'undefined' && typeof comp.game1 !== 'undefined' && typeof comp.game2 !== 'undefined') {
                     promptUser("Which game do you prefer?", [{
                         text: comp.game1.name,
                         click: function click() {
-                            public_methods.setComparison(comp, 1);
-                            run_pipeline();
+                            _this3.setComparison(comp, 1);
+                            _this3._run_pipeline();
                         }
                     }, {
                         text: comp.game2.name,
                         click: function click() {
-                            public_methods.setComparison(comp, 2);
-                            run_pipeline();
+                            _this3.setComparison(comp, 2);
+                            _this3._run_pipeline();
                         }
                     }]);
                 } else {
-                    run_pipeline();
+                    _this3._run_pipeline();
                 }
             });
             return this;
         }
-    };
+    }, {
+        key: 'setComparison',
+        value: function setComparison(comparison, selection) {
+            // NOT async
+            if (selection == 1 || selection == 2) {
+                comparison.winnerIndex = selection;
+                this.games_object.setFlickchartMatchup(comparison);
+            } else {
+                console.warn("Thomas: Selection must be either 1 or 2.");
+            }
+            return this;
+        }
+    }]);
 
-    return public_methods.init();
-};
+    return Thomas;
+})();
 
 /**************************************************************
     METHODS
 **************************************************************/
+
 var getGames = function getGames() {
     // todo: get user input
 
@@ -634,7 +654,7 @@ var promptUser = function promptUser(message, buttons) {
 /**************************************************************
     TEMP MAIN
 **************************************************************/
-var test = new thomas();
+var test = new Thomas();
 
 test.addGame('llama').addGame('sushi').addGame('taco').addGame('chocolate');
 test.debug();

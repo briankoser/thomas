@@ -84,8 +84,7 @@ class GamesHelpers {
             
             if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
                 games = GamesHelpers.lockGame(games, i);
-            }
-            else {
+            } else {
                 break;
             }
         }
@@ -97,8 +96,7 @@ class GamesHelpers {
             
             if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
                 games = GamesHelpers.lockGame(games, i);
-            }
-            else {
+            } else {
                 break;
             }
         }
@@ -127,8 +125,7 @@ class GamesHelpers {
             list[gameIndex2].losses += 1;
             game_matchups = GamesHelpers.logMatchup(game_matchups, list[gameIndex1].id, list[gameIndex2].id);
             list = GamesHelpers.reposition(list, gameIndex1, gameIndex2);
-        }
-        else {
+        } else {
             list[gameIndex1].losses += 1;
             list[gameIndex2].wins += 1;
             game_matchups = GamesHelpers.logMatchup(game_matchups, list[gameIndex2].id, list[gameIndex1].id);
@@ -160,8 +157,7 @@ class GamesHelpers {
                     if(games[i].locked || _.contains(gamesRankedAboveWinner, games[i].id)) {
                         newPosition = i + 1;
                         break;
-                    }
-                    else {
+                    } else {
                         games[i].position += 1;
                     }
                 }
@@ -177,16 +173,14 @@ class GamesHelpers {
                     if(games[i].locked || _.contains(gamesRankedBelowLoser, games[i].id)) {
                         newPosition = i - 1;
                         break;
-                    }
-                    else {
+                    } else {
                         games[i].position -= 1;
                     }
                 }
                 
                 games[loserIndex].position = newPosition;
             }
-        }
-        else {
+        } else {
             _.map(games, function(item) {
                 if(item.position >= loserPosition && item.position < winnerPosition)
                     item.position += 1;
@@ -369,8 +363,7 @@ class Matchups {
         
         if (losers.length == 0) {
             return includeId ? [id] : [];
-        }
-        else {
+        } else {
             var children = losers.map(function(item) {
                 return self.getAllRankedLower(item, true);
             });
@@ -400,8 +393,7 @@ class Matchups {
         
         if (winners.length == 0) {
             return includeId ? [id] : [];
-        }
-        else {
+        } else {
             var parents = winners.map(function(item) {
                 return self.getAllRankedHigher(item, true);
             });
@@ -436,99 +428,97 @@ class Matchups {
 
 
 
-var thomas = function () {
+class Thomas {
+    constructor () {
+        this.games_object = new Games([]);
+        this.process_pipeline = new Array();
+        this.process_running = false;
+    }
     
-    // Private
-    var games_object;
-    var process_pipeline = new Array();
-    var process_running = false;
-    
-    var push_pipeline = function(action) {
-        process_pipeline.push(action);
-        if (!process_running) {
-            process_running = true;
-            run_pipeline();
+    // private
+    _push_pipeline (action) {
+        this.process_pipeline.push(action);
+        if (!this.process_running) {
+            this.process_running = true;
+            this._run_pipeline();
         }
     }
     
-    var run_pipeline = function() {
-        if (process_pipeline.length) {
+    _run_pipeline () {
+        if (this.process_pipeline.length) {
             // Dequeue and execute
-            process_pipeline.shift()();
+            this.process_pipeline.shift()();
         } else {
-            process_running = false; 
+            this.process_running = false; 
         }
     }
     
-    // Public
-    var public_methods = {
-        init: function() {
-            games_object = new Games([]);
-            return this;
-        },
-        debug: function() {
-            push_pipeline(function() {
-                console.log(games_object.toString());
-                run_pipeline();
-            });
-            return this;
-        },
-        addGame: function(game_name) {
-            push_pipeline(function() {
-                games_object.addGame(new Game(games_object.list.length, -1, game_name));
-                run_pipeline();
-            });
-            return this;
-        },
-        getComparison: function() {
-            // NOT async
-            var fc = games_object.getFlickchartMatchup();
-            if (!fc.isNull) {
-                return fc;
-            } else {
-                console.warn("Thomas: Cannot generate comparison.");
-            }
-        },
-        setComparison: function(comparison, selection) {
-            // NOT async
-            if (selection == 1 || selection == 2) {
-                comparison.winnerIndex = selection;
-                games_object.setFlickchartMatchup(comparison);
-            } else {
-                console.warn("Thomas: Selection must be either 1 or 2.")
-            }
-            return this;
-        },
-        promptComparison: function() {
-            push_pipeline(function() {
-                var comp = public_methods.getComparison();
-                if (typeof comp !== 'undefined' && typeof comp.game1 !== 'undefined' && typeof comp.game2 !== 'undefined') {
-                    promptUser("Which game do you prefer?", [ 
-                        { 
-                            text: comp.game1.name, 
-                            click: function() { 
-                                public_methods.setComparison(comp, 1);
-                                run_pipeline(); 
-                            } 
-                        }, 
-                        { 
-                            text: comp.game2.name, 
-                            click: function() { 
-                                public_methods.setComparison(comp, 2);
-                                run_pipeline(); 
-                            } 
-                        } 
-                    ]); 
-                } else {
-                    run_pipeline(); 
-                }
-            });
-            return this;
-        }
-    };
+    // public
+    addGame (game_name) {
+        this._push_pipeline( () => {
+            this.games_object.addGame(new Game(this.games_object.list.length, -1, game_name));
+            this._run_pipeline();
+        });
+        return this;
+    }
+        
+    debug () {
+        this._push_pipeline( () => {
+            console.log(this.games_object.toString());
+            this._run_pipeline();
+        });
+        return this;
+    }
     
-    return public_methods.init();
+    getComparison () {
+        // NOT async
+        var fc = this.games_object.getFlickchartMatchup();
+        if (!fc.isNull) {
+            return fc;
+        } else {
+            console.warn("Thomas: Cannot generate comparison.");
+        }
+    }
+    
+    promptComparison () {
+        this._push_pipeline( () => {
+            var comp = this.getComparison();
+            if (typeof comp !== 'undefined' && typeof comp.game1 !== 'undefined' && typeof comp.game2 !== 'undefined') {
+                promptUser("Which game do you prefer?", [ 
+                    { 
+                        text: comp.game1.name, 
+                        click: () => { 
+                            this.setComparison(comp, 1);
+                            this._run_pipeline(); 
+                        } 
+                    }, 
+                    { 
+                        text: comp.game2.name, 
+                        click: () => { 
+                            this.setComparison(comp, 2);
+                            this._run_pipeline(); 
+                        } 
+                    } 
+                ]); 
+            } else {
+                this._run_pipeline(); 
+            }
+        });
+        return this;
+    }
+        
+    setComparison (comparison, selection) {
+        // NOT async
+        if (selection == 1 || selection == 2) {
+            comparison.winnerIndex = selection;
+            this.games_object.setFlickchartMatchup(comparison);
+        } else {
+            console.warn("Thomas: Selection must be either 1 or 2.")
+        }
+        return this;
+    }
 }
+
 
 
 /**************************************************************
@@ -592,7 +582,7 @@ var promptUser = function(message, buttons) {
 /**************************************************************
     TEMP MAIN
 **************************************************************/
-var test = new thomas();
+var test = new Thomas();
 
 test.addGame('llama').addGame('sushi').addGame('taco').addGame('chocolate');
 test.debug();
