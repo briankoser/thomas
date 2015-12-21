@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -25,7 +25,7 @@ var Battle = function Battle(game1, game2, game1Index, game2Index, winner) {
     this.game1Index = game1Index;
     this.game2Index = game2Index;
     this.winnerIndex = winner;
-    this.isNull = typeof game1 == 'undefined';
+    this.isNull = game1 == undefined;
 };
 
 /**
@@ -50,12 +50,12 @@ var Game = (function () {
     }
 
     _createClass(Game, [{
-        key: 'differential',
+        key: "differential",
         value: function differential() {
             return this.wins - this.losses;
         }
     }, {
-        key: 'toString',
+        key: "toString",
         value: function toString() {
             return this.name;
         }
@@ -75,7 +75,7 @@ var GamesHelpers = (function () {
     }
 
     _createClass(GamesHelpers, null, [{
-        key: 'compareGames',
+        key: "compareGames",
 
         /**
          * Compare the positions of two games.
@@ -88,21 +88,21 @@ var GamesHelpers = (function () {
             return game1.position - game2.position;
         }
     }, {
-        key: 'getUnlockedGames',
+        key: "getUnlockedGames",
         value: function getUnlockedGames(games) {
             return _.filter(games, function (game) {
                 return !game.locked;
             });
         }
     }, {
-        key: 'lockAll',
+        key: "lockAll",
         value: function lockAll(games) {
             return _.each(games, function (element, index, list) {
                 return GamesHelpers.lockGame(list, index);
             });
         }
     }, {
-        key: 'lockCompletelySortedGames',
+        key: "lockCompletelySortedGames",
         value: function lockCompletelySortedGames(games, matchups) {
             for (var i = 0; i < games.length; i++) {
                 var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
@@ -129,7 +129,7 @@ var GamesHelpers = (function () {
             return games;
         }
     }, {
-        key: 'lockGame',
+        key: "lockGame",
         value: function lockGame(games, index) {
             var gameToLock = games[index];
             gameToLock.locked = true;
@@ -137,7 +137,7 @@ var GamesHelpers = (function () {
             return games;
         }
     }, {
-        key: 'logMatchup',
+        key: "logMatchup",
         value: function logMatchup(matchups, winner, loser) {
             var match = new Matchup(winner, loser);
 
@@ -146,7 +146,7 @@ var GamesHelpers = (function () {
             return matchups;
         }
     }, {
-        key: 'rankGames',
+        key: "rankGames",
         value: function rankGames(list, game_matchups, gameIndex1, gameIndex2, isFirstBetter) {
             if (isFirstBetter) {
                 list[gameIndex1].wins += 1;
@@ -167,7 +167,7 @@ var GamesHelpers = (function () {
             return { list: list, game_matchups: game_matchups };
         }
     }, {
-        key: 'reposition',
+        key: "reposition",
         value: function reposition(games, winnerIndex, loserIndex) {
             var winnerPosition = games[winnerIndex].position;
             var loserPosition = games[loserIndex].position;
@@ -219,7 +219,7 @@ var GamesHelpers = (function () {
             return games;
         }
     }, {
-        key: 'unlockAll',
+        key: "unlockAll",
         value: function unlockAll(games) {
             for (var i = 0; i < games.length; i++) {
                 games[i].locked = false;
@@ -228,7 +228,7 @@ var GamesHelpers = (function () {
             return games;
         }
     }, {
-        key: 'unlockGame',
+        key: "unlockGame",
         value: function unlockGame(games, index) {
             var gameToLock = games[index];
             gameToLock.locked = false;
@@ -255,14 +255,14 @@ var Games = (function () {
     }
 
     _createClass(Games, [{
-        key: 'doesMatchupRemain',
+        key: "doesMatchupRemain",
         value: function doesMatchupRemain() {
             return _.filter(this.list, function (game) {
                 return !game.rankedThisIteration && !game.locked;
             }).length >= 2;
         }
     }, {
-        key: 'getFlickchartMatchup',
+        key: "getFlickchartMatchup",
         value: function getFlickchartMatchup() {
             // If there's only one game to sort, it is already sorted
             if (this.list.length <= 1) {
@@ -285,7 +285,7 @@ var Games = (function () {
             return new Battle();
         }
     }, {
-        key: 'setFlickchartMatchup',
+        key: "setFlickchartMatchup",
         value: function setFlickchartMatchup(battleResult) {
             var _GamesHelpers$rankGam = GamesHelpers.rankGames(this.list, this.game_matchups, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
 
@@ -299,14 +299,14 @@ var Games = (function () {
             console.log(this.game_matchups.toString());
         }
     }, {
-        key: 'getFirstNotLockedOrRanked',
+        key: "getFirstNotLockedOrRanked",
         value: function getFirstNotLockedOrRanked() {
             return _.find(this.list, function (game) {
                 return !game.locked && !game.rankedThisIteration;
             });
         }
     }, {
-        key: 'getOpponent',
+        key: "getOpponent",
         value: function getOpponent(games, game1, matchups) {
             var game2 = _.find(games, function (game) {
                 return !game.locked && !game.rankedThisIteration && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
@@ -326,15 +326,15 @@ var Games = (function () {
             return game2;
         }
     }, {
-        key: 'quickSort',
+        key: "quickSort",
         value: function quickSort() {}
     }, {
-        key: 'sortList',
+        key: "sortList",
         value: function sortList() {
             this.list.sort(GamesHelpers.compareGames);
         }
     }, {
-        key: 'addGame',
+        key: "addGame",
         value: function addGame(game) {
             this.list.push(game);
         }
@@ -345,7 +345,7 @@ var Games = (function () {
         */
 
     }, {
-        key: 'toString',
+        key: "toString",
         value: function toString() {
             return this.list.toString();
         }
@@ -375,7 +375,7 @@ var Matchup = (function () {
     */
 
     _createClass(Matchup, [{
-        key: 'toString',
+        key: "toString",
         value: function toString() {
             return this.winner + '>' + this.loser;
         }
@@ -397,7 +397,7 @@ var Matchups = (function () {
     }
 
     _createClass(Matchups, [{
-        key: 'add',
+        key: "add",
         value: function add(matchup) {
             this.list.push(matchup);
         }
@@ -405,7 +405,7 @@ var Matchups = (function () {
         //todo: pass in list as parameter
 
     }, {
-        key: 'getAllRankedLower',
+        key: "getAllRankedLower",
         value: function getAllRankedLower(id, includeId) {
             if (includeId == undefined) includeId = false;
 
@@ -435,7 +435,7 @@ var Matchups = (function () {
         //todo: pass in list as parameter
 
     }, {
-        key: 'getAllRankedHigher',
+        key: "getAllRankedHigher",
         value: function getAllRankedHigher(id, includeId) {
             if (includeId == undefined) includeId = false;
 
@@ -462,7 +462,7 @@ var Matchups = (function () {
             }
         }
     }, {
-        key: 'isRanked',
+        key: "isRanked",
         value: function isRanked(gameId1, gameId2) {
             var self = this;
 
@@ -479,7 +479,7 @@ var Matchups = (function () {
         */
 
     }, {
-        key: 'toString',
+        key: "toString",
         value: function toString() {
             return this.list.toString();
         }
@@ -500,7 +500,7 @@ var Thomas = (function () {
     // private
 
     _createClass(Thomas, [{
-        key: '_push_pipeline',
+        key: "_push_pipeline",
         value: function _push_pipeline(action) {
             this.process_pipeline.push(action);
             if (!this.process_running) {
@@ -509,7 +509,7 @@ var Thomas = (function () {
             }
         }
     }, {
-        key: '_run_pipeline',
+        key: "_run_pipeline",
         value: function _run_pipeline() {
             if (this.process_pipeline.length) {
                 // Dequeue and execute
@@ -522,7 +522,7 @@ var Thomas = (function () {
         // public
 
     }, {
-        key: 'addGame',
+        key: "addGame",
         value: function addGame(game_name) {
             var _this = this;
 
@@ -533,12 +533,12 @@ var Thomas = (function () {
             return this;
         }
     }, {
-        key: 'closePrompt',
+        key: "closePrompt",
         value: function closePrompt() {
             document.getElementById("thomas-dialog").style.display = "none";
         }
     }, {
-        key: 'debug',
+        key: "debug",
         value: function debug() {
             var _this2 = this;
 
@@ -549,7 +549,7 @@ var Thomas = (function () {
             return this;
         }
     }, {
-        key: 'getComparison',
+        key: "getComparison",
         value: function getComparison() {
             // NOT async
             var fc = this.games_object.getFlickchartMatchup();
@@ -560,13 +560,13 @@ var Thomas = (function () {
             }
         }
     }, {
-        key: 'promptComparison',
+        key: "promptComparison",
         value: function promptComparison() {
             var _this3 = this;
 
             this._push_pipeline(function () {
                 var comp = _this3.getComparison();
-                if (typeof comp !== 'undefined' && typeof comp.game1 !== 'undefined' && typeof comp.game2 !== 'undefined') {
+                if (typeof comp !== 'undefined' && comp.game1 !== undefined && comp.game2 !== undefined) {
                     _this3.promptUser("Which game do you prefer?", [{
                         text: comp.game1.name,
                         click: function click() {
@@ -592,7 +592,7 @@ var Thomas = (function () {
         // Buttons: an array of object of the form { text: "link text", click: function() { /* action */ } }
 
     }, {
-        key: 'promptUser',
+        key: "promptUser",
         value: function promptUser(message, buttons) {
             if (document.getElementById("thomas-dialog") != null) {
                 var el = document.getElementById("thomas-dialog");
@@ -622,7 +622,7 @@ var Thomas = (function () {
             }
         }
     }, {
-        key: 'setComparison',
+        key: "setComparison",
         value: function setComparison(comparison, selection) {
             // NOT async
             if (selection == 1 || selection == 2) {

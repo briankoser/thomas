@@ -17,7 +17,7 @@ class Battle {
         this.game1Index = game1Index;
         this.game2Index = game2Index;
         this.winnerIndex = winner;
-        this.isNull = typeof game1 == 'undefined';
+        this.isNull = game1 == undefined;
     }
 }
 
@@ -487,7 +487,7 @@ class Thomas {
     promptComparison () {
         this._push_pipeline( () => {
             var comp = this.getComparison();
-            if (typeof comp !== 'undefined' && typeof comp.game1 !== 'undefined' && typeof comp.game2 !== 'undefined') {
+            if (comp !== undefined && comp.game1 !== undefined && comp.game2 !== undefined) {
                 this.promptUser("Which game do you prefer?", [ 
                     { 
                         text: comp.game1.name, 
