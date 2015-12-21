@@ -426,7 +426,7 @@ class Matchups {
         var lower = self.getAllRankedLower(gameId1);
         var all = higher.concat(lower);
         
-        return _.contains(all, gameId2);
+        return all.indexOf(gameId2) > -1;
     }
 
     /**
