@@ -97,7 +97,7 @@ var GamesHelpers = (function () {
     }, {
         key: "lockAll",
         value: function lockAll(games) {
-            return _.each(games, function (element, index, list) {
+            return games.forEach(function (element, index, list) {
                 return GamesHelpers.lockGame(list, index);
             });
         }

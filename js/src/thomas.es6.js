@@ -73,7 +73,7 @@ class GamesHelpers {
     }
     
     static lockAll (games) {
-        return _.each(games, function(element, index, list) {return GamesHelpers.lockGame(list, index);});
+        return games.forEach((element, index, list) => GamesHelpers.lockGame(list, index));
     }
     
     static lockCompletelySortedGames (games, matchups) {
