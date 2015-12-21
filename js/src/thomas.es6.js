@@ -431,7 +431,7 @@ class Matchups {
         
         var higher = self.getAllRankedHigher(gameId1);
         var lower = self.getAllRankedLower(gameId1);
-        const all = higher.concat(lower);
+        const all = [...higher, ...lower];
         
         return all.indexOf(gameId2) > -1;
     }
