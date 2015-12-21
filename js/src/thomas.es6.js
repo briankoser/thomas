@@ -534,17 +534,17 @@ class Thomas {
         var buttonsHtml = '';
         var buttonEvents = new Array();
         for (let i = buttons.length - 1; i >= 0; i--) {
-            buttons[i].buttonId = 'thomas-dialog-opt-' + i;
-            buttonsHtml += '<a id="' + buttons[i].buttonId + '" onclick="test.closePrompt()" href="javascript: void(0)">' + buttons[i].text + '</a>';
+            buttons[i].buttonId = `thomas-dialog-opt-${i}`;
+            buttonsHtml += `<a id="${buttons[i].buttonId}" onclick="test.closePrompt()" href="javascript: void(0)">${buttons[i].text}</a>`;
         }
         
         appendHtml(document.body,
-            '<div id="thomas-dialog">' +
-            '    <div id="thomas-dialog-content">' +
-            '        <p>' + message + '</p>' +
-            '        <div>' + buttonsHtml + '</div>' +
-            '    </div>' +
-            '</div>');
+`<div id="thomas-dialog">
+    <div id="thomas-dialog-content">
+        <p>${message}</p>
+        <div>${buttonsHtml}</div>
+    </div>
+</div>`);
             
         // Add events to buttons after adding them to the DOM
         for (let i = 0; i < buttons.length; i++) {

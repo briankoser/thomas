@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -52,12 +52,12 @@ var Game = (function () {
     }
 
     _createClass(Game, [{
-        key: "differential",
+        key: 'differential',
         value: function differential() {
             return this.wins - this.losses;
         }
     }, {
-        key: "toString",
+        key: 'toString',
         value: function toString() {
             return this.name;
         }
@@ -77,7 +77,7 @@ var GamesUtilities = (function () {
     }
 
     _createClass(GamesUtilities, null, [{
-        key: "compareGames",
+        key: 'compareGames',
 
         /**
          * Compare the positions of two games.
@@ -90,21 +90,21 @@ var GamesUtilities = (function () {
             return game1.position - game2.position;
         }
     }, {
-        key: "getUnlockedGames",
+        key: 'getUnlockedGames',
         value: function getUnlockedGames(games) {
             return games.filter(function (game) {
                 return !game.locked;
             });
         }
     }, {
-        key: "lockAll",
+        key: 'lockAll',
         value: function lockAll(games) {
             return games.forEach(function (element, index, list) {
                 return GamesUtilities.lockGame(list, index);
             });
         }
     }, {
-        key: "lockCompletelySortedGames",
+        key: 'lockCompletelySortedGames',
         value: function lockCompletelySortedGames(games, matchups) {
             for (var i = 0; i < games.length; i++) {
                 var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
@@ -131,7 +131,7 @@ var GamesUtilities = (function () {
             return games;
         }
     }, {
-        key: "lockGame",
+        key: 'lockGame',
         value: function lockGame(games, index) {
             var gameToLock = games[index];
             gameToLock.locked = true;
@@ -139,14 +139,14 @@ var GamesUtilities = (function () {
             return games;
         }
     }, {
-        key: "logMatchup",
+        key: 'logMatchup',
         value: function logMatchup(matchups, winner, loser) {
             var match = new Matchup(winner, loser);
             matchups.add(match);
             return matchups;
         }
     }, {
-        key: "rankGames",
+        key: 'rankGames',
         value: function rankGames(list, game_matchups, gameIndex1, gameIndex2, isFirstBetter) {
             if (isFirstBetter) {
                 list[gameIndex1].wins += 1;
@@ -167,7 +167,7 @@ var GamesUtilities = (function () {
             return { list: list, game_matchups: game_matchups };
         }
     }, {
-        key: "reposition",
+        key: 'reposition',
         value: function reposition(games, winnerIndex, loserIndex) {
             var winnerPosition = games[winnerIndex].position;
             var loserPosition = games[loserIndex].position;
@@ -219,7 +219,7 @@ var GamesUtilities = (function () {
             return games;
         }
     }, {
-        key: "unlockAll",
+        key: 'unlockAll',
         value: function unlockAll(games) {
             for (var i = 0; i < games.length; i++) {
                 games[i].locked = false;
@@ -228,7 +228,7 @@ var GamesUtilities = (function () {
             return games;
         }
     }, {
-        key: "unlockGame",
+        key: 'unlockGame',
         value: function unlockGame(games, index) {
             var gameToLock = games[index];
             gameToLock.locked = false;
@@ -255,14 +255,14 @@ var Games = (function () {
     }
 
     _createClass(Games, [{
-        key: "doesMatchupRemain",
+        key: 'doesMatchupRemain',
         value: function doesMatchupRemain() {
             return this.list.filter(function (game) {
                 return !game.rankedThisIteration && !game.locked;
             }).length >= 2;
         }
     }, {
-        key: "getFlickchartMatchup",
+        key: 'getFlickchartMatchup',
         value: function getFlickchartMatchup() {
             // If there's only one game to sort, it is already sorted
             if (this.list.length <= 1) {
@@ -285,7 +285,7 @@ var Games = (function () {
             return new Battle();
         }
     }, {
-        key: "setFlickchartMatchup",
+        key: 'setFlickchartMatchup',
         value: function setFlickchartMatchup(battleResult) {
             var _GamesUtilities$rankG = GamesUtilities.rankGames(this.list, this.game_matchups, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
 
@@ -299,14 +299,14 @@ var Games = (function () {
             console.log(this.game_matchups.toString());
         }
     }, {
-        key: "getFirstNotLockedOrRanked",
+        key: 'getFirstNotLockedOrRanked',
         value: function getFirstNotLockedOrRanked() {
             return this.list.find(function (game) {
                 return !game.locked && !game.rankedThisIteration;
             });
         }
     }, {
-        key: "getOpponent",
+        key: 'getOpponent',
         value: function getOpponent(games, game1, matchups) {
             var game2 = games.find(function (game) {
                 return !game.locked && !game.rankedThisIteration && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
@@ -320,21 +320,21 @@ var Games = (function () {
 
             // If game2 is still undefined, then all possible matchups have been evaluated
             if (game2 === undefined) {
-                console.warn("Thomas: All possible matchups have been evaluated by the user.");
+                console.warn('Thomas: All possible matchups have been evaluated by the user.');
             }
 
             return game2;
         }
     }, {
-        key: "quickSort",
+        key: 'quickSort',
         value: function quickSort() {}
     }, {
-        key: "sortList",
+        key: 'sortList',
         value: function sortList() {
             this.list.sort(GamesUtilities.compareGames);
         }
     }, {
-        key: "addGame",
+        key: 'addGame',
         value: function addGame(game) {
             this.list.push(game);
         }
@@ -345,7 +345,7 @@ var Games = (function () {
         */
 
     }, {
-        key: "toString",
+        key: 'toString',
         value: function toString() {
             return this.list.toString();
         }
@@ -365,7 +365,7 @@ var Utilities = (function () {
     }
 
     _createClass(Utilities, null, [{
-        key: "flattenArray",
+        key: 'flattenArray',
 
         /**
          * Move all items from nested arrays to the top-level array.
@@ -385,7 +385,7 @@ var Utilities = (function () {
          */
 
     }, {
-        key: "uniqueArray",
+        key: 'uniqueArray',
         value: function uniqueArray(list) {
             return list.filter(function (value, index) {
                 return list.indexOf(value) === index;
@@ -417,7 +417,7 @@ var Matchup = (function () {
     */
 
     _createClass(Matchup, [{
-        key: "toString",
+        key: 'toString',
         value: function toString() {
             return this.winner + '>' + this.loser;
         }
@@ -439,7 +439,7 @@ var Matchups = (function () {
     }
 
     _createClass(Matchups, [{
-        key: "add",
+        key: 'add',
         value: function add(matchup) {
             this.list.push(matchup);
         }
@@ -447,7 +447,7 @@ var Matchups = (function () {
         //todo: pass in list as parameter
 
     }, {
-        key: "getAllRankedLower",
+        key: 'getAllRankedLower',
         value: function getAllRankedLower(id, includeId) {
             var _this = this;
 
@@ -477,7 +477,7 @@ var Matchups = (function () {
         //todo: pass in list as parameter
 
     }, {
-        key: "getAllRankedHigher",
+        key: 'getAllRankedHigher',
         value: function getAllRankedHigher(id, includeId) {
             var _this2 = this;
 
@@ -504,7 +504,7 @@ var Matchups = (function () {
             }
         }
     }, {
-        key: "isRanked",
+        key: 'isRanked',
         value: function isRanked(gameId1, gameId2) {
             var higher = this.getAllRankedHigher(gameId1);
             var lower = this.getAllRankedLower(gameId1);
@@ -519,7 +519,7 @@ var Matchups = (function () {
         */
 
     }, {
-        key: "toString",
+        key: 'toString',
         value: function toString() {
             return this.list.toString();
         }
@@ -540,7 +540,7 @@ var Thomas = (function () {
     // private
 
     _createClass(Thomas, [{
-        key: "_push_pipeline",
+        key: '_push_pipeline',
         value: function _push_pipeline(action) {
             this.process_pipeline.push(action);
             if (!this.process_running) {
@@ -549,7 +549,7 @@ var Thomas = (function () {
             }
         }
     }, {
-        key: "_run_pipeline",
+        key: '_run_pipeline',
         value: function _run_pipeline() {
             if (this.process_pipeline.length) {
                 // Dequeue and execute
@@ -562,7 +562,7 @@ var Thomas = (function () {
         // public
 
     }, {
-        key: "addGame",
+        key: 'addGame',
         value: function addGame(game_name) {
             var _this3 = this;
 
@@ -573,12 +573,12 @@ var Thomas = (function () {
             return this;
         }
     }, {
-        key: "closePrompt",
+        key: 'closePrompt',
         value: function closePrompt() {
-            document.getElementById("thomas-dialog").style.display = "none";
+            document.getElementById('thomas-dialog').style.display = 'none';
         }
     }, {
-        key: "debug",
+        key: 'debug',
         value: function debug() {
             var _this4 = this;
 
@@ -589,25 +589,25 @@ var Thomas = (function () {
             return this;
         }
     }, {
-        key: "getComparison",
+        key: 'getComparison',
         value: function getComparison() {
             // NOT async
             var fc = this.games_object.getFlickchartMatchup();
             if (!fc.isNull) {
                 return fc;
             } else {
-                console.warn("Thomas: Cannot generate comparison.");
+                console.warn('Thomas: Cannot generate comparison.');
             }
         }
     }, {
-        key: "promptComparison",
+        key: 'promptComparison',
         value: function promptComparison() {
             var _this5 = this;
 
             this._push_pipeline(function () {
                 var comp = _this5.getComparison();
                 if (comp !== undefined && comp.game1 !== undefined && comp.game2 !== undefined) {
-                    _this5.promptUser("Which game do you prefer?", [{
+                    _this5.promptUser('Which game do you prefer?', [{
                         text: comp.game1.name,
                         click: function click() {
                             _this5.setComparison(comp, 1);
@@ -632,10 +632,10 @@ var Thomas = (function () {
         // Buttons: an array of object of the form { text: "link text", click: function() { /* action */ } }
 
     }, {
-        key: "promptUser",
+        key: 'promptUser',
         value: function promptUser(message, buttons) {
-            if (document.getElementById("thomas-dialog") != null) {
-                var el = document.getElementById("thomas-dialog");
+            if (document.getElementById('thomas-dialog') != null) {
+                var el = document.getElementById('thomas-dialog');
                 el.parentNode.removeChild(el);
             }
             var appendHtml = function appendHtml(el, str) {
@@ -654,22 +654,22 @@ var Thomas = (function () {
                 buttonsHtml += '<a id="' + buttons[i].buttonId + '" onclick="test.closePrompt()" href="javascript: void(0)">' + buttons[i].text + '</a>';
             }
 
-            appendHtml(document.body, '<div id="thomas-dialog">' + '    <div id="thomas-dialog-content">' + '        <p>' + message + '</p>' + '        <div>' + buttonsHtml + '</div>' + '    </div>' + '</div>');
+            appendHtml(document.body, '<div id="thomas-dialog">\n    <div id="thomas-dialog-content">\n        <p>' + message + '</p>\n        <div>' + buttonsHtml + '</div>\n    </div>\n</div>');
 
             // Add events to buttons after adding them to the DOM
             for (var i = 0; i < buttons.length; i++) {
-                document.getElementById(buttons[i].buttonId).addEventListener("click", buttons[i].click);
+                document.getElementById(buttons[i].buttonId).addEventListener('click', buttons[i].click);
             }
         }
     }, {
-        key: "setComparison",
+        key: 'setComparison',
         value: function setComparison(comparison, selection) {
             // NOT async
             if (selection == 1 || selection == 2) {
                 comparison.winnerIndex = selection;
                 this.games_object.setFlickchartMatchup(comparison);
             } else {
-                console.warn("Thomas: Selection must be either 1 or 2.");
+                console.warn('Thomas: Selection must be either 1 or 2.');
             }
             return this;
         }
