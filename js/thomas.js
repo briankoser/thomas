@@ -183,7 +183,7 @@ var GamesHelpers = (function () {
                     var newPosition = winner.position - winner.differential();
 
                     for (var i = winnerPosition - 1; i >= newPosition; i--) {
-                        if (games[i].locked || _.contains(gamesRankedAboveWinner, games[i].id)) {
+                        if (games[i].locked || gamesRankedAboveWinner.indexOf(games[i].id) > -1) {
                             newPosition = i + 1;
                             break;
                         } else {
@@ -198,7 +198,7 @@ var GamesHelpers = (function () {
                     var newPosition = loser.position - loser.differential();
 
                     for (var i = loserPosition + 1; i <= newPosition; i++) {
-                        if (games[i].locked || _.contains(gamesRankedBelowLoser, games[i].id)) {
+                        if (games[i].locked || gamesRankedBelowLoser.indexOf(games[i].id) > -1) {
                             newPosition = i - 1;
                             break;
                         } else {
