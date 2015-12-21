@@ -65,16 +65,16 @@ var Game = (function () {
 })();
 
 /**
- * Static helper methods for Games.
+ * Static utility methods for Games.
  * @class
  */
 
-var GamesHelpers = (function () {
-    function GamesHelpers() {
-        _classCallCheck(this, GamesHelpers);
+var GamesUtilities = (function () {
+    function GamesUtilities() {
+        _classCallCheck(this, GamesUtilities);
     }
 
-    _createClass(GamesHelpers, null, [{
+    _createClass(GamesUtilities, null, [{
         key: "compareGames",
 
         /**
@@ -98,7 +98,7 @@ var GamesHelpers = (function () {
         key: "lockAll",
         value: function lockAll(games) {
             return games.forEach(function (element, index, list) {
-                return GamesHelpers.lockGame(list, index);
+                return GamesUtilities.lockGame(list, index);
             });
         }
     }, {
@@ -106,10 +106,10 @@ var GamesHelpers = (function () {
         value: function lockCompletelySortedGames(games, matchups) {
             for (var i = 0; i < games.length; i++) {
                 var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
-                var gamesUnlockedExcludingCurrentGameCount = GamesHelpers.getUnlockedGames(games).length - 1;
+                var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
 
                 if (!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
-                    games = GamesHelpers.lockGame(games, i);
+                    games = GamesUtilities.lockGame(games, i);
                 } else {
                     break;
                 }
@@ -117,10 +117,10 @@ var GamesHelpers = (function () {
 
             for (var i = games.length - 1; i >= 0; i--) {
                 var gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
-                var gamesUnlockedExcludingCurrentGameCount = GamesHelpers.getUnlockedGames(games).length - 1;
+                var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
 
                 if (!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
-                    games = GamesHelpers.lockGame(games, i);
+                    games = GamesUtilities.lockGame(games, i);
                 } else {
                     break;
                 }
@@ -151,18 +151,18 @@ var GamesHelpers = (function () {
             if (isFirstBetter) {
                 list[gameIndex1].wins += 1;
                 list[gameIndex2].losses += 1;
-                game_matchups = GamesHelpers.logMatchup(game_matchups, list[gameIndex1].id, list[gameIndex2].id);
-                list = GamesHelpers.reposition(list, gameIndex1, gameIndex2);
+                game_matchups = GamesUtilities.logMatchup(game_matchups, list[gameIndex1].id, list[gameIndex2].id);
+                list = GamesUtilities.reposition(list, gameIndex1, gameIndex2);
             } else {
                 list[gameIndex1].losses += 1;
                 list[gameIndex2].wins += 1;
-                game_matchups = GamesHelpers.logMatchup(game_matchups, list[gameIndex2].id, list[gameIndex1].id);
-                list = GamesHelpers.reposition(list, gameIndex2, gameIndex1);
+                game_matchups = GamesUtilities.logMatchup(game_matchups, list[gameIndex2].id, list[gameIndex1].id);
+                list = GamesUtilities.reposition(list, gameIndex2, gameIndex1);
             }
 
             list[gameIndex1].rankedThisIteration = true;
             list[gameIndex2].rankedThisIteration = true;
-            list = GamesHelpers.lockCompletelySortedGames(list, game_matchups);
+            list = GamesUtilities.lockCompletelySortedGames(list, game_matchups);
 
             return { list: list, game_matchups: game_matchups };
         }
@@ -237,7 +237,7 @@ var GamesHelpers = (function () {
         }
     }]);
 
-    return GamesHelpers;
+    return GamesUtilities;
 })();
 
 /**
@@ -266,11 +266,11 @@ var Games = (function () {
         value: function getFlickchartMatchup() {
             // If there's only one game to sort, it is already sorted
             if (this.list.length <= 1) {
-                this.list = GamesHelpers.lockAll(this.list);
+                this.list = GamesUtilities.lockAll(this.list);
             } else {
                 if (!this.doesMatchupRemain()) {
                     // All games have been visited at least once, start over
-                    this.list = GamesHelpers.unlockAll(this.list);
+                    this.list = GamesUtilities.unlockAll(this.list);
                 }
                 if (this.doesMatchupRemain()) {
                     var game1 = this.getFirstNotLockedOrRanked();
@@ -287,10 +287,10 @@ var Games = (function () {
     }, {
         key: "setFlickchartMatchup",
         value: function setFlickchartMatchup(battleResult) {
-            var _GamesHelpers$rankGam = GamesHelpers.rankGames(this.list, this.game_matchups, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
+            var _GamesUtilities$rankG = GamesUtilities.rankGames(this.list, this.game_matchups, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
 
-            var list = _GamesHelpers$rankGam.list;
-            var game_matchups = _GamesHelpers$rankGam.game_matchups;
+            var list = _GamesUtilities$rankG.list;
+            var game_matchups = _GamesUtilities$rankG.game_matchups;
 
             this.list = list;
             this.game_matchups = game_matchups;
@@ -331,7 +331,7 @@ var Games = (function () {
     }, {
         key: "sortList",
         value: function sortList() {
-            this.list.sort(GamesHelpers.compareGames);
+            this.list.sort(GamesUtilities.compareGames);
         }
     }, {
         key: "addGame",
@@ -355,16 +355,16 @@ var Games = (function () {
 })();
 
 /**
- * A utility class to hold static helpers e.g. for arrays
+ * A class to hold static utilities e.g. for arrays
  * @class
  */
 
-var Helpers = (function () {
-    function Helpers() {
-        _classCallCheck(this, Helpers);
+var Utilities = (function () {
+    function Utilities() {
+        _classCallCheck(this, Utilities);
     }
 
-    _createClass(Helpers, null, [{
+    _createClass(Utilities, null, [{
         key: "flattenArray",
 
         /**
@@ -374,7 +374,7 @@ var Helpers = (function () {
          */
         value: function flattenArray(list) {
             return list.reduce(function (a, b) {
-                return a.concat(Array.isArray(b) ? Helpers.flattenArray(b) : b);
+                return a.concat(Array.isArray(b) ? Utilities.flattenArray(b) : b);
             }, []);
         }
 
@@ -393,7 +393,7 @@ var Helpers = (function () {
         }
     }]);
 
-    return Helpers;
+    return Utilities;
 })();
 
 /**
@@ -466,11 +466,11 @@ var Matchups = (function () {
                     return self.getAllRankedLower(item, true);
                 });
 
-                losers = losers.concat(Helpers.flattenArray(children));
+                losers = losers.concat(Utilities.flattenArray(children));
 
                 if (includeId) losers.push(id);
 
-                return Helpers.uniqueArray(losers);
+                return Utilities.uniqueArray(losers);
             }
         }
 
@@ -496,11 +496,11 @@ var Matchups = (function () {
                     return self.getAllRankedHigher(item, true);
                 });
 
-                winners = winners.concat(Helpers.flattenArray(parents));
+                winners = winners.concat(Utilities.flattenArray(parents));
 
                 if (includeId) winners.push(id);
 
-                return Helpers.uniqueArray(winners);
+                return Utilities.uniqueArray(winners);
             }
         }
     }, {
