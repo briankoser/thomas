@@ -301,19 +301,19 @@ var Games = (function () {
     }, {
         key: "getFirstNotLockedOrRanked",
         value: function getFirstNotLockedOrRanked() {
-            return _.find(this.list, function (game) {
+            return this.list.find(function (game) {
                 return !game.locked && !game.rankedThisIteration;
             });
         }
     }, {
         key: "getOpponent",
         value: function getOpponent(games, game1, matchups) {
-            var game2 = _.find(games, function (game) {
+            var game2 = games.find(function (game) {
                 return !game.locked && !game.rankedThisIteration && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
             });
 
             if (game2 === undefined) {
-                game2 = _.find(games, function (game) {
+                game2 = games.find(function (game) {
                     return !game.locked && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
                 });
             }

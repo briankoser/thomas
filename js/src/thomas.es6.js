@@ -262,20 +262,19 @@ class Games {
     }
     
     getFirstNotLockedOrRanked () {
-        return _.find(this.list, function(game) {
-            return !game.locked && !game.rankedThisIteration;
-        });
+        return this.list.find(game => !game.locked && !game.rankedThisIteration);
     }
     
     getOpponent (games, game1, matchups) {
-        var game2 = _.find(games, function(game) {
-            return !game.locked && !game.rankedThisIteration && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
-        });
+        var game2 = games.find(game => 
+          !game.locked && 
+          !game.rankedThisIteration && 
+          game.id !== game1.id && 
+          !matchups.isRanked(game1.id, game.id)
+        );
         
         if (game2 === undefined) {
-            game2 = _.find(games, function(game) {
-                return !game.locked && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
-            });
+            game2 = games.find(game => !game.locked && game.id !== game1.id && !matchups.isRanked(game1.id, game.id));
         }
         
         // If game2 is still undefined, then all possible matchups have been evaluated
