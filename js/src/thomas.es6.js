@@ -403,6 +403,10 @@ class GamesUtilities {
 
 
 
+/**
+ * Thomas sorts a list of games according to user input.
+ * @class
+ */
 class Thomas {
     constructor () {
         this.games = new Games([]);
