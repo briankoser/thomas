@@ -1,0 +1,8 @@
+{
+	"compilerOptions": {
+		"target": "ES6"
+	},
+	"files": [
+		"js/src/thomas.es6.js"
+	]
+}
