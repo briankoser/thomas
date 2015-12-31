@@ -24,6 +24,97 @@ class Comparison {
 
 
 /**
+ * The result of comparing two games.
+ * @class
+ * @param {string} winner - The winner of the comparison.
+ * @param {string} loser - The loser of the comparison.
+ */
+class ComparisonResult {
+    constructor (winner, loser) {
+        this.winner = winner;
+        this.loser = loser;
+    }
+    
+    /**
+    * ToString for a matchup.
+    * @method
+    */
+    toString () {
+        return this.winner + '>' + this.loser;
+    }
+}
+
+
+
+/**
+ * A collection of comparisons.
+ * @class
+ */
+class Comparisons {
+    constructor () {
+        this.list = [];
+    }
+
+    add (comparison) {
+        this.list.push(comparison);
+    }
+    
+    //todo: pass in list as parameter
+    getAllRankedHigher (id, includeId = false) {
+        var winners = this.list.map(item => item.loser === id ? item.winner : undefined).filter(item => item);
+        
+        if (winners.length == 0) {
+            return includeId ? [id] : [];
+        } else {
+            const parents = winners.map(item => this.getAllRankedHigher(item, true));
+            
+            winners = winners.concat(Utilities.flattenArray(parents));
+            
+            if(includeId)
+                winners.push(id);
+            
+            return Utilities.uniqueArray(winners);
+        }
+    }
+    
+    //todo: pass in list as parameter
+    getAllRankedLower (id, includeId = false) {
+        var losers = this.list.map(item => item.winner === id ? item.loser : undefined).filter(item => item);
+        
+        if (losers.length == 0) {
+            return includeId ? [id] : [];
+        } else {
+            const children = losers.map(item => this.getAllRankedLower(item, true));
+            
+            losers = losers.concat(Utilities.flattenArray(children));
+            
+            if(includeId)
+                losers.push(id);
+            
+            return Utilities.uniqueArray(losers);
+        }
+    }
+    
+    haveBeenCompared (gameId1, gameId2) {
+        const higher = this.getAllRankedHigher(gameId1);
+        const lower = this.getAllRankedLower(gameId1);
+        const all = [...higher, ...lower];
+        
+        return all.indexOf(gameId2) > -1;
+    }
+
+    /**
+    * ToString for matchups.
+    * @method
+    */    
+    toString () {
+        return this.list.toString();
+    }
+}
+
+
+
+/**
  * A board game with rank information.
  * @class
  * @param {int} id - A unique id.
@@ -47,6 +138,110 @@ class Game {
     
     toString () {
         return this.name;
+    }
+}
+
+
+
+/**
+ * A collection of games.
+ * @class
+ * @param {array} list - An array of games.
+ */
+class Games {
+    constructor (list) {
+        this.list = list;
+        this.comparisons = new Comparisons();
+    }
+    
+    add (game) {
+        this.list.push(game);
+    }
+    
+    doesComparisonRemain () {
+        return this.list.filter(game => !game.comparedThisIteration && !game.locked).length >= 2;
+    }
+    
+    getFlickchartComparison () {
+        // If there's only one game to sort, it is already sorted
+        if (this.list.length <= 1) {
+            this.list = GamesUtilities.lockAll(this.list);
+        } else {
+            if (!this.doesComparisonRemain()) {
+                // All games have been visited at least once, start over
+                this.list = GamesUtilities.unlockAll(this.list);
+            }
+            if (this.doesComparisonRemain()) {
+                const game1 = this.getFirstNotLockedOrCompared();
+                const game1Index = this.list.indexOf(game1);
+                const game2 = this.getOpponent(this.list, game1, this.comparisons);
+                const game2Index = this.list.indexOf(game2);
+                
+                return new Comparison(game1, game2, game1Index, game2Index);
+            }
+        }
+        
+        return new Comparison();
+    }
+    
+    getFirstNotLockedOrCompared () {
+        return this.list.find(game => !game.locked && !game.comparedThisIteration);
+    }
+    
+    // todo: refactor game2 search to be DRY
+    getOpponent (games, game1, comparisons) {
+        var game2 = games.find(game => 
+            !game.locked && 
+            !game.comparedThisIteration && 
+            game.id !== game1.id && 
+            !comparisons.haveBeenCompared(game1.id, game.id)
+        );
+        
+        if (game2 === undefined) {
+            game2 = games.find(game => !game.locked && 
+                game.id !== game1.id && 
+                !comparisons.haveBeenCompared(game1.id, game.id)
+            );
+        }
+        
+        // If game2 is still undefined, then all possible comparisons have been evaluated
+        if (game2 === undefined) {
+            console.warn('Thomas: All possible comparisons have been compared by the user.');
+            // todo: does this need to be handled somehow?
+        }
+                
+        return game2;
+    }
+    
+    // todo: implement quicksort to complement flickchart sort
+    quickSort () {
+        
+    }
+    
+    setFlickchartComparison (comparison) {
+        const {list, comparisons} = GamesUtilities.rankGames(
+            this.list, 
+            this.comparisons, 
+            comparison.ComparisonResult, 
+            comparison.game2Index, 
+            comparison.winnerIndex);
+        this.list = list;
+        this.comparisons = comparisons;
+        this.sortList();
+        
+        console.log(this.comparisons.toString());
+    }
+    
+    sortList () {
+        this.list.sort(GamesUtilities.compareGamesPosition);
+    }
+    
+    /**
+    * ToString for games.
+    * @method
+    */
+    toString () {
+        return this.list.toString();
     }
 }
 
@@ -203,229 +398,6 @@ class GamesUtilities {
         gameToLock.locked = false;
         games[index] = gameToLock;
         return games;
-    }
-}
-
-
-
-/**
- * A collection of games.
- * @class
- * @param {array} list - An array of games.
- */
-class Games {
-    constructor (list) {
-        this.list = list;
-        this.comparisons = new Comparisons();
-    }
-    
-    doesComparisonRemain () {
-        return this.list.filter(game => !game.comparedThisIteration && !game.locked).length >= 2;
-    }
-    
-    getFlickchartComparison () {
-        // If there's only one game to sort, it is already sorted
-        if (this.list.length <= 1) {
-            this.list = GamesUtilities.lockAll(this.list);
-        } else {
-            if (!this.doesComparisonRemain()) {
-                // All games have been visited at least once, start over
-                this.list = GamesUtilities.unlockAll(this.list);
-            }
-            if (this.doesComparisonRemain()) {
-                const game1 = this.getFirstNotLockedOrCompared();
-                const game1Index = this.list.indexOf(game1);
-                const game2 = this.getOpponent(this.list, game1, this.comparisons);
-                const game2Index = this.list.indexOf(game2);
-                
-                return new Comparison(game1, game2, game1Index, game2Index);
-            }
-        }
-        
-        return new Comparison();
-    }
-    
-    setFlickchartComparison (comparison) {
-        const {list, comparisons} = GamesUtilities.rankGames(
-            this.list, 
-            this.comparisons, 
-            comparison.ComparisonResult, 
-            comparison.game2Index, 
-            comparison.winnerIndex);
-        this.list = list;
-        this.comparisons = comparisons;
-        this.sortList();
-        
-        console.log(this.comparisons.toString());
-    }
-    
-    getFirstNotLockedOrCompared () {
-        return this.list.find(game => !game.locked && !game.comparedThisIteration);
-    }
-    
-    // todo: refactor game2 search to be DRY
-    getOpponent (games, game1, comparisons) {
-        var game2 = games.find(game => 
-            !game.locked && 
-            !game.comparedThisIteration && 
-            game.id !== game1.id && 
-            !comparisons.haveBeenCompared(game1.id, game.id)
-        );
-        
-        if (game2 === undefined) {
-            game2 = games.find(game => !game.locked && 
-                game.id !== game1.id && 
-                !comparisons.haveBeenCompared(game1.id, game.id)
-            );
-        }
-        
-        // If game2 is still undefined, then all possible comparisons have been evaluated
-        if (game2 === undefined) {
-            console.warn('Thomas: All possible comparisons have been compared by the user.');
-            // todo: does this need to be handled somehow?
-        }
-                
-        return game2;
-    }
-    
-    // todo: implement quicksort to complement flickchart sort
-    quickSort () {
-        
-    }
-    
-    sortList () {
-        this.list.sort(GamesUtilities.compareGamesPosition);
-    }
-    
-    add (game) {
-        this.list.push(game);
-    }
-    
-    /**
-    * ToString for games.
-    * @method
-    */
-    toString () {
-        return this.list.toString();
-    }
-}
-
-
-
-/**
- * A class to hold static utilities e.g. for arrays
- * @class
- */
-class Utilities {
-    /**
-     * Move all items from nested arrays to the top-level array.
-     * @method
-     * @param {array} list - The array to flatten.
-     */
-    static flattenArray (list) {
-      return list.reduce(
-        (a, b) => a.concat(Array.isArray(b) ? Utilities.flattenArray(b) : b), []
-      );   
-    }
-    
-    /**
-     * Remove all duplicate items from an array.
-     * @method
-     * @param {array} list - The array from which to remove duplicates.
-     */
-    static uniqueArray (list) {
-        return list.filter( (value, index) => list.indexOf(value) === index);
-    }
-}
-
-
-
-/**
- * The result of comparing two games.
- * @class
- * @param {string} winner - The winner of the comparison.
- * @param {string} loser - The loser of the comparison.
- */
-class ComparisonResult {
-    constructor (winner, loser) {
-        this.winner = winner;
-        this.loser = loser;
-    }
-    
-    /**
-    * ToString for a matchup.
-    * @method
-    */
-    toString () {
-        return this.winner + '>' + this.loser;
-    }
-}
-
-
-
-/**
- * A collection of comparisons.
- * @class
- */
-class Comparisons {
-    constructor () {
-        this.list = [];
-    }
-
-    add (comparison) {
-        this.list.push(comparison);
-    }
-    
-    //todo: pass in list as parameter
-    getAllRankedLower (id, includeId = false) {
-        var losers = this.list.map(item => item.winner === id ? item.loser : undefined).filter(item => item);
-        
-        if (losers.length == 0) {
-            return includeId ? [id] : [];
-        } else {
-            const children = losers.map(item => this.getAllRankedLower(item, true));
-            
-            losers = losers.concat(Utilities.flattenArray(children));
-            
-            if(includeId)
-                losers.push(id);
-            
-            return Utilities.uniqueArray(losers);
-        }
-    }
-    
-    //todo: pass in list as parameter
-    getAllRankedHigher (id, includeId = false) {
-        var winners = this.list.map(item => item.loser === id ? item.winner : undefined).filter(item => item);
-        
-        if (winners.length == 0) {
-            return includeId ? [id] : [];
-        } else {
-            const parents = winners.map(item => this.getAllRankedHigher(item, true));
-            
-            winners = winners.concat(Utilities.flattenArray(parents));
-            
-            if(includeId)
-                winners.push(id);
-            
-            return Utilities.uniqueArray(winners);
-        }
-    }
-    
-    haveBeenCompared (gameId1, gameId2) {
-        const higher = this.getAllRankedHigher(gameId1);
-        const lower = this.getAllRankedLower(gameId1);
-        const all = [...higher, ...lower];
-        
-        return all.indexOf(gameId2) > -1;
-    }
-
-    /**
-    * ToString for matchups.
-    * @method
-    */    
-    toString () {
-        return this.list.toString();
     }
 }
 
@@ -600,6 +572,34 @@ class Thomas {
             console.warn('Thomas: Selection must be either 1 or 2.')
         }
         return this;
+    }
+}
+
+
+
+/**
+ * A class to hold static utilities e.g. for arrays
+ * @class
+ */
+class Utilities {
+    /**
+     * Move all items from nested arrays to the top-level array.
+     * @method
+     * @param {array} list - The array to flatten.
+     */
+    static flattenArray (list) {
+      return list.reduce(
+        (a, b) => a.concat(Array.isArray(b) ? Utilities.flattenArray(b) : b), []
+      );   
+    }
+    
+    /**
+     * Remove all duplicate items from an array.
+     * @method
+     * @param {array} list - The array from which to remove duplicates.
+     */
+    static uniqueArray (list) {
+        return list.filter( (value, index) => list.indexOf(value) === index);
     }
 }
 
