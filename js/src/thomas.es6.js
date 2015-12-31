@@ -38,6 +38,7 @@ class ComparisonResult {
     /**
     * ToString for a matchup.
     * @method
+    * @returns {string} string representation of a ComparisonResult
     */
     toString () {
         return this.winner + '>' + this.loser;
@@ -55,11 +56,25 @@ class Comparisons {
         this.list = [];
     }
 
+    /**
+     * Adds a comparison to the internal list.
+     * @method
+     * @param {Comparison} comparison - A Comparison
+     */
     add (comparison) {
         this.list.push(comparison);
     }
     
     //todo: pass in list as parameter
+    /**
+     * Get all games that have won a comparison again the game. Comparisons are commutative, 
+     * so if e.g. game1 won a comparison against game2 and game2 won against game3,
+     * game1 would be included as a winner against game3.
+     * @method
+     * @param {int} id - The id of the game to get winners for.
+     * @param {boolean} includeId - If true, include the id of the game in the list of winners (default is "false").
+     * @returns {array} collection of games 
+     */
     getAllRankedHigher (id, includeId = false) {
         var winners = this.list.map(item => item.loser === id ? item.winner : undefined).filter(item => item);
         
@@ -78,6 +93,15 @@ class Comparisons {
     }
     
     //todo: pass in list as parameter
+    /**
+     * Get all games that have lost a comparison again the game. Comparisons are commutative, 
+     * so if e.g. game1 lost a comparison against game2 and game2 lost against game3,
+     * game1 would be included as a loser against game3.
+     * @method
+     * @param {int} id - The id of the game to get losers for.
+     * @param {boolean} includeId - If true, include the id of the game in the list of losers (default is "false").
+     * @returns {array} collection of games 
+     */
     getAllRankedLower (id, includeId = false) {
         var losers = this.list.map(item => item.winner === id ? item.loser : undefined).filter(item => item);
         
@@ -95,6 +119,15 @@ class Comparisons {
         }
     }
     
+    /**
+     * Checks if two games have been compared. Comparisons are commutative, 
+     * so if e.g. game1 won a comparison against game2 and game2 won against game3,
+     * game1 and game3 would be considered to have been compared. 
+     * @method
+     * @param {int} gameId1 - The id of the first game to check for comparison.
+     * @param {int} gameId2 - The id of the second game to check for comparison.
+     * @returns {boolean} true if games have been compared, else false
+     */
     haveBeenCompared (gameId1, gameId2) {
         const higher = this.getAllRankedHigher(gameId1);
         const lower = this.getAllRankedLower(gameId1);
@@ -106,7 +139,8 @@ class Comparisons {
     /**
     * ToString for matchups.
     * @method
-    */    
+    * @returns {string} string representation of a Comparisons object
+    */
     toString () {
         return this.list.toString();
     }
@@ -132,10 +166,22 @@ class Game {
         this.comparedThisIteration = false;
     }
     
+    /**
+     * The differential is a measure of how many times a game has won vs. how many times it has lost. 
+     * This is useful, e.g., in determining that a game is positioned much higher (low differential)
+     * or much lower (high differential) that it's true ranking.
+     * @method
+     * @returns {int} the game's differential 
+     */
     differential () {
         return this.wins - this.losses;
     }
     
+    /**
+    * ToString for matchups.
+    * @method
+    * @returns {string} string representation of a Game
+    */
     toString () {
         return this.name;
     }
@@ -154,9 +200,15 @@ class Games {
         this.comparisons = new Comparisons();
     }
     
+    /**
+     * Add a Game to the internal Games collection.
+     * @method
+     * @param {game} game - The game to add to the internal Games collection.
+     */
     add (game) {
         this.list.push(game);
     }
+    
     
     doesComparisonRemain () {
         return this.list.filter(game => !game.comparedThisIteration && !game.locked).length >= 2;
@@ -222,7 +274,7 @@ class Games {
         const {list, comparisons} = GamesUtilities.rankGames(
             this.list, 
             this.comparisons, 
-            comparison.ComparisonResult, 
+            comparison.game1Index, 
             comparison.game2Index, 
             comparison.winnerIndex);
         this.list = list;
@@ -239,6 +291,7 @@ class Games {
     /**
     * ToString for games.
     * @method
+    * @returns {string} string representation of a Games object
     */
     toString () {
         return this.list.toString();
@@ -316,12 +369,12 @@ class GamesUtilities {
         if(winnerIndex == 1) {
             list[gameIndex1].wins += 1;
             list[gameIndex2].losses += 1;
-            comparisons = GamesUtilities.logMatchup(comparisons, list[gameIndex1].id, list[gameIndex2].id);
+            comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex1].id, list[gameIndex2].id);
             list = GamesUtilities.reposition(list, gameIndex1, gameIndex2);
         } else {
             list[gameIndex1].losses += 1;
             list[gameIndex2].wins += 1;
-            comparisons = GamesUtilities.logMatchup(comparisons, list[gameIndex2].id, list[gameIndex1].id);
+            comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex2].id, list[gameIndex1].id);
             list = GamesUtilities.reposition(list, gameIndex2, gameIndex1);
         }
         
@@ -403,6 +456,10 @@ class GamesUtilities {
 
 
 
+/**
+ * Thomas sorts a list of games according to user input.
+ * @class
+ */
 class Thomas {
     constructor () {
         this.games = new Games([]);
