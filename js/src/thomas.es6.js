@@ -274,7 +274,7 @@ class Games {
         const {list, comparisons} = GamesUtilities.rankGames(
             this.list, 
             this.comparisons, 
-            comparison.ComparisonResult, 
+            comparison.game1Index, 
             comparison.game2Index, 
             comparison.winnerIndex);
         this.list = list;
@@ -369,12 +369,12 @@ class GamesUtilities {
         if(winnerIndex == 1) {
             list[gameIndex1].wins += 1;
             list[gameIndex2].losses += 1;
-            comparisons = GamesUtilities.logMatchup(comparisons, list[gameIndex1].id, list[gameIndex2].id);
+            comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex1].id, list[gameIndex2].id);
             list = GamesUtilities.reposition(list, gameIndex1, gameIndex2);
         } else {
             list[gameIndex1].losses += 1;
             list[gameIndex2].wins += 1;
-            comparisons = GamesUtilities.logMatchup(comparisons, list[gameIndex2].id, list[gameIndex1].id);
+            comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex2].id, list[gameIndex1].id);
             list = GamesUtilities.reposition(list, gameIndex2, gameIndex1);
         }
         

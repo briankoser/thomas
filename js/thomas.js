@@ -19,8 +19,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @param {string} winner - The index of the winner of the matchup.
  */
 
-var Battle = function Battle(game1, game2, game1Index, game2Index, winner) {
-    _classCallCheck(this, Battle);
+var Comparison = function Comparison(game1, game2, game1Index, game2Index, winner) {
+    _classCallCheck(this, Comparison);
 
     this.game1 = game1;
     this.game2 = game2;
@@ -29,6 +29,175 @@ var Battle = function Battle(game1, game2, game1Index, game2Index, winner) {
     this.winnerIndex = winner;
     this.isNull = game1 == undefined;
 };
+
+/**
+ * The result of comparing two games.
+ * @class
+ * @param {string} winner - The winner of the comparison.
+ * @param {string} loser - The loser of the comparison.
+ */
+
+var ComparisonResult = (function () {
+    function ComparisonResult(winner, loser) {
+        _classCallCheck(this, ComparisonResult);
+
+        this.winner = winner;
+        this.loser = loser;
+    }
+
+    /**
+    * ToString for a matchup.
+    * @method
+    * @returns {string} string representation of a ComparisonResult
+    */
+
+    _createClass(ComparisonResult, [{
+        key: 'toString',
+        value: function toString() {
+            return this.winner + '>' + this.loser;
+        }
+    }]);
+
+    return ComparisonResult;
+})();
+
+/**
+ * A collection of comparisons.
+ * @class
+ */
+
+var Comparisons = (function () {
+    function Comparisons() {
+        _classCallCheck(this, Comparisons);
+
+        this.list = [];
+    }
+
+    /**
+     * Adds a comparison to the internal list.
+     * @method
+     * @param {Comparison} comparison - A Comparison
+     */
+
+    _createClass(Comparisons, [{
+        key: 'add',
+        value: function add(comparison) {
+            this.list.push(comparison);
+        }
+
+        //todo: pass in list as parameter
+        /**
+         * Get all games that have won a comparison again the game. Comparisons are commutative, 
+         * so if e.g. game1 won a comparison against game2 and game2 won against game3,
+         * game1 would be included as a winner against game3.
+         * @method
+         * @param {int} id - The id of the game to get winners for.
+         * @param {boolean} includeId - If true, include the id of the game in the list of winners (default is "false").
+         * @returns {array} collection of games 
+         */
+
+    }, {
+        key: 'getAllRankedHigher',
+        value: function getAllRankedHigher(id) {
+            var _this = this;
+
+            var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
+            var winners = this.list.map(function (item) {
+                return item.loser === id ? item.winner : undefined;
+            }).filter(function (item) {
+                return item;
+            });
+
+            if (winners.length == 0) {
+                return includeId ? [id] : [];
+            } else {
+                var parents = winners.map(function (item) {
+                    return _this.getAllRankedHigher(item, true);
+                });
+
+                winners = winners.concat(Utilities.flattenArray(parents));
+
+                if (includeId) winners.push(id);
+
+                return Utilities.uniqueArray(winners);
+            }
+        }
+
+        //todo: pass in list as parameter
+        /**
+         * Get all games that have lost a comparison again the game. Comparisons are commutative, 
+         * so if e.g. game1 lost a comparison against game2 and game2 lost against game3,
+         * game1 would be included as a loser against game3.
+         * @method
+         * @param {int} id - The id of the game to get losers for.
+         * @param {boolean} includeId - If true, include the id of the game in the list of losers (default is "false").
+         * @returns {array} collection of games 
+         */
+
+    }, {
+        key: 'getAllRankedLower',
+        value: function getAllRankedLower(id) {
+            var _this2 = this;
+
+            var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
+            var losers = this.list.map(function (item) {
+                return item.winner === id ? item.loser : undefined;
+            }).filter(function (item) {
+                return item;
+            });
+
+            if (losers.length == 0) {
+                return includeId ? [id] : [];
+            } else {
+                var children = losers.map(function (item) {
+                    return _this2.getAllRankedLower(item, true);
+                });
+
+                losers = losers.concat(Utilities.flattenArray(children));
+
+                if (includeId) losers.push(id);
+
+                return Utilities.uniqueArray(losers);
+            }
+        }
+
+        /**
+         * Checks if two games have been compared. Comparisons are commutative, 
+         * so if e.g. game1 won a comparison against game2 and game2 won against game3,
+         * game1 and game3 would be considered to have been compared. 
+         * @method
+         * @param {int} gameId1 - The id of the first game to check for comparison.
+         * @param {int} gameId2 - The id of the second game to check for comparison.
+         * @returns {boolean} true if games have been compared, else false
+         */
+
+    }, {
+        key: 'haveBeenCompared',
+        value: function haveBeenCompared(gameId1, gameId2) {
+            var higher = this.getAllRankedHigher(gameId1);
+            var lower = this.getAllRankedLower(gameId1);
+            var all = [].concat(_toConsumableArray(higher), _toConsumableArray(lower));
+
+            return all.indexOf(gameId2) > -1;
+        }
+
+        /**
+        * ToString for matchups.
+        * @method
+        * @returns {string} string representation of a Comparisons object
+        */
+
+    }, {
+        key: 'toString',
+        value: function toString() {
+            return this.list.toString();
+        }
+    }]);
+
+    return Comparisons;
+})();
 
 /**
  * A board game with rank information.
@@ -48,14 +217,29 @@ var Game = (function () {
         this.wins = 0;
         this.losses = 0;
         this.locked = false;
-        this.rankedThisIteration = false;
+        this.comparedThisIteration = false;
     }
+
+    /**
+     * The differential is a measure of how many times a game has won vs. how many times it has lost. 
+     * This is useful, e.g., in determining that a game is positioned much higher (low differential)
+     * or much lower (high differential) that it's true ranking.
+     * @method
+     * @returns {int} the game's differential 
+     */
 
     _createClass(Game, [{
         key: 'differential',
         value: function differential() {
             return this.wins - this.losses;
         }
+
+        /**
+        * ToString for matchups.
+        * @method
+        * @returns {string} string representation of a Game
+        */
+
     }, {
         key: 'toString',
         value: function toString() {
@@ -64,6 +248,134 @@ var Game = (function () {
     }]);
 
     return Game;
+})();
+
+/**
+ * A collection of games.
+ * @class
+ * @param {array} list - An array of games.
+ */
+
+var Games = (function () {
+    function Games(list) {
+        _classCallCheck(this, Games);
+
+        this.list = list;
+        this.comparisons = new Comparisons();
+    }
+
+    /**
+     * Add a Game to the internal Games collection.
+     * @method
+     * @param {game} game - The game to add to the internal Games collection.
+     */
+
+    _createClass(Games, [{
+        key: 'add',
+        value: function add(game) {
+            this.list.push(game);
+        }
+    }, {
+        key: 'doesComparisonRemain',
+        value: function doesComparisonRemain() {
+            return this.list.filter(function (game) {
+                return !game.comparedThisIteration && !game.locked;
+            }).length >= 2;
+        }
+    }, {
+        key: 'getFlickchartComparison',
+        value: function getFlickchartComparison() {
+            // If there's only one game to sort, it is already sorted
+            if (this.list.length <= 1) {
+                this.list = GamesUtilities.lockAll(this.list);
+            } else {
+                if (!this.doesComparisonRemain()) {
+                    // All games have been visited at least once, start over
+                    this.list = GamesUtilities.unlockAll(this.list);
+                }
+                if (this.doesComparisonRemain()) {
+                    var game1 = this.getFirstNotLockedOrCompared();
+                    var game1Index = this.list.indexOf(game1);
+                    var game2 = this.getOpponent(this.list, game1, this.comparisons);
+                    var game2Index = this.list.indexOf(game2);
+
+                    return new Comparison(game1, game2, game1Index, game2Index);
+                }
+            }
+
+            return new Comparison();
+        }
+    }, {
+        key: 'getFirstNotLockedOrCompared',
+        value: function getFirstNotLockedOrCompared() {
+            return this.list.find(function (game) {
+                return !game.locked && !game.comparedThisIteration;
+            });
+        }
+
+        // todo: refactor game2 search to be DRY
+
+    }, {
+        key: 'getOpponent',
+        value: function getOpponent(games, game1, comparisons) {
+            var game2 = games.find(function (game) {
+                return !game.locked && !game.comparedThisIteration && game.id !== game1.id && !comparisons.haveBeenCompared(game1.id, game.id);
+            });
+
+            if (game2 === undefined) {
+                game2 = games.find(function (game) {
+                    return !game.locked && game.id !== game1.id && !comparisons.haveBeenCompared(game1.id, game.id);
+                });
+            }
+
+            // If game2 is still undefined, then all possible comparisons have been evaluated
+            if (game2 === undefined) {
+                console.warn('Thomas: All possible comparisons have been compared by the user.');
+                // todo: does this need to be handled somehow?
+            }
+
+            return game2;
+        }
+
+        // todo: implement quicksort to complement flickchart sort
+
+    }, {
+        key: 'quickSort',
+        value: function quickSort() {}
+    }, {
+        key: 'setFlickchartComparison',
+        value: function setFlickchartComparison(comparison) {
+            var _GamesUtilities$rankG = GamesUtilities.rankGames(this.list, this.comparisons, comparison.game1Index, comparison.game2Index, comparison.winnerIndex);
+
+            var list = _GamesUtilities$rankG.list;
+            var comparisons = _GamesUtilities$rankG.comparisons;
+
+            this.list = list;
+            this.comparisons = comparisons;
+            this.sortList();
+
+            console.log(this.comparisons.toString());
+        }
+    }, {
+        key: 'sortList',
+        value: function sortList() {
+            this.list.sort(GamesUtilities.compareGamesPosition);
+        }
+
+        /**
+        * ToString for games.
+        * @method
+        * @returns {string} string representation of a Games object
+        */
+
+    }, {
+        key: 'toString',
+        value: function toString() {
+            return this.list.toString();
+        }
+    }]);
+
+    return Games;
 })();
 
 /**
@@ -77,7 +389,7 @@ var GamesUtilities = (function () {
     }
 
     _createClass(GamesUtilities, null, [{
-        key: 'compareGames',
+        key: 'compareGamesPosition',
 
         /**
          * Compare the positions of two games.
@@ -86,7 +398,7 @@ var GamesUtilities = (function () {
          * @param {game} game2 - The second game to compare by position.
          * @returns 
          */
-        value: function compareGames(game1, game2) {
+        value: function compareGamesPosition(game1, game2) {
             return game1.position - game2.position;
         }
     }, {
@@ -105,9 +417,9 @@ var GamesUtilities = (function () {
         }
     }, {
         key: 'lockCompletelySortedGames',
-        value: function lockCompletelySortedGames(games, matchups) {
+        value: function lockCompletelySortedGames(games, comparisons) {
             for (var i = 0; i < games.length; i++) {
-                var gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
+                var gamesRankedLowerCount = comparisons.getAllRankedLower(games[i].id).length;
                 var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
 
                 if (!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
@@ -118,7 +430,7 @@ var GamesUtilities = (function () {
             }
 
             for (var i = games.length - 1; i >= 0; i--) {
-                var gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
+                var gamesRankedHigherCount = comparisons.getAllRankedHigher(games[i].id).length;
                 var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
 
                 if (!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
@@ -139,32 +451,32 @@ var GamesUtilities = (function () {
             return games;
         }
     }, {
-        key: 'logMatchup',
-        value: function logMatchup(matchups, winner, loser) {
-            var match = new Matchup(winner, loser);
-            matchups.add(match);
-            return matchups;
+        key: 'logComparison',
+        value: function logComparison(comparisons, winner, loser) {
+            var comparison = new ComparisonResult(winner, loser);
+            comparisons.add(comparison);
+            return comparisons;
         }
     }, {
         key: 'rankGames',
-        value: function rankGames(list, game_matchups, gameIndex1, gameIndex2, isFirstBetter) {
-            if (isFirstBetter) {
+        value: function rankGames(list, comparisons, gameIndex1, gameIndex2, winnerIndex) {
+            if (winnerIndex == 1) {
                 list[gameIndex1].wins += 1;
                 list[gameIndex2].losses += 1;
-                game_matchups = GamesUtilities.logMatchup(game_matchups, list[gameIndex1].id, list[gameIndex2].id);
+                comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex1].id, list[gameIndex2].id);
                 list = GamesUtilities.reposition(list, gameIndex1, gameIndex2);
             } else {
                 list[gameIndex1].losses += 1;
                 list[gameIndex2].wins += 1;
-                game_matchups = GamesUtilities.logMatchup(game_matchups, list[gameIndex2].id, list[gameIndex1].id);
+                comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex2].id, list[gameIndex1].id);
                 list = GamesUtilities.reposition(list, gameIndex2, gameIndex1);
             }
 
-            list[gameIndex1].rankedThisIteration = true;
-            list[gameIndex2].rankedThisIteration = true;
-            list = GamesUtilities.lockCompletelySortedGames(list, game_matchups);
+            list[gameIndex1].comparedThisIteration = true;
+            list[gameIndex2].comparedThisIteration = true;
+            list = GamesUtilities.lockCompletelySortedGames(list, comparisons);
 
-            return { list: list, game_matchups: game_matchups };
+            return { list: list, comparisons: comparisons };
         }
     }, {
         key: 'reposition',
@@ -179,7 +491,7 @@ var GamesUtilities = (function () {
 
                 if (winner.differential() > 0) {
                     var newPosition = winner.position - winner.differential();
-                    var gamesRankedAboveWinner = getAllRankedHigher(winner.id);
+                    var gamesRankedAboveWinner = games.getAllRankedHigher(winner.id);
 
                     for (var i = winnerPosition - 1; i >= newPosition; i--) {
                         if (games[i].locked || gamesRankedAboveWinner.indexOf(games[i].id) > -1) {
@@ -195,7 +507,7 @@ var GamesUtilities = (function () {
 
                 if (loser.differential() < 0) {
                     var newPosition = loser.position - loser.differential();
-                    var gamesRankedBelowLoser = getAllRankedLower(loser.id);
+                    var gamesRankedBelowLoser = games.getAllRankedLower(loser.id);
 
                     for (var i = loserPosition + 1; i <= newPosition; i++) {
                         if (games[i].locked || gamesRankedBelowLoser.indexOf(games[i].id) > -1) {
@@ -223,7 +535,7 @@ var GamesUtilities = (function () {
         value: function unlockAll(games) {
             for (var i = 0; i < games.length; i++) {
                 games[i].locked = false;
-                games[i].rankedThisIteration = false;
+                games[i].comparedThisIteration = false;
             }
             return games;
         }
@@ -241,298 +553,15 @@ var GamesUtilities = (function () {
 })();
 
 /**
- * A collection of games.
- * @class
- * @param {array} list - An array of games.
- */
-
-var Games = (function () {
-    function Games(list) {
-        _classCallCheck(this, Games);
-
-        this.list = list;
-        this.game_matchups = new Matchups();
-    }
-
-    _createClass(Games, [{
-        key: 'doesMatchupRemain',
-        value: function doesMatchupRemain() {
-            return this.list.filter(function (game) {
-                return !game.rankedThisIteration && !game.locked;
-            }).length >= 2;
-        }
-    }, {
-        key: 'getFlickchartMatchup',
-        value: function getFlickchartMatchup() {
-            // If there's only one game to sort, it is already sorted
-            if (this.list.length <= 1) {
-                this.list = GamesUtilities.lockAll(this.list);
-            } else {
-                if (!this.doesMatchupRemain()) {
-                    // All games have been visited at least once, start over
-                    this.list = GamesUtilities.unlockAll(this.list);
-                }
-                if (this.doesMatchupRemain()) {
-                    var game1 = this.getFirstNotLockedOrRanked();
-                    var game1Index = this.list.indexOf(game1);
-                    var game2 = this.getOpponent(this.list, game1, this.game_matchups);
-                    var game2Index = this.list.indexOf(game2);
-
-                    return new Battle(game1, game2, game1Index, game2Index);
-                }
-            }
-
-            return new Battle();
-        }
-    }, {
-        key: 'setFlickchartMatchup',
-        value: function setFlickchartMatchup(battleResult) {
-            var _GamesUtilities$rankG = GamesUtilities.rankGames(this.list, this.game_matchups, battleResult.game1Index, battleResult.game2Index, battleResult.winnerIndex);
-
-            var list = _GamesUtilities$rankG.list;
-            var game_matchups = _GamesUtilities$rankG.game_matchups;
-
-            this.list = list;
-            this.game_matchups = game_matchups;
-            this.sortList();
-
-            console.log(this.game_matchups.toString());
-        }
-    }, {
-        key: 'getFirstNotLockedOrRanked',
-        value: function getFirstNotLockedOrRanked() {
-            return this.list.find(function (game) {
-                return !game.locked && !game.rankedThisIteration;
-            });
-        }
-    }, {
-        key: 'getOpponent',
-        value: function getOpponent(games, game1, matchups) {
-            var game2 = games.find(function (game) {
-                return !game.locked && !game.rankedThisIteration && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
-            });
-
-            if (game2 === undefined) {
-                game2 = games.find(function (game) {
-                    return !game.locked && game.id !== game1.id && !matchups.isRanked(game1.id, game.id);
-                });
-            }
-
-            // If game2 is still undefined, then all possible matchups have been evaluated
-            if (game2 === undefined) {
-                console.warn('Thomas: All possible matchups have been evaluated by the user.');
-            }
-
-            return game2;
-        }
-    }, {
-        key: 'quickSort',
-        value: function quickSort() {}
-    }, {
-        key: 'sortList',
-        value: function sortList() {
-            this.list.sort(GamesUtilities.compareGames);
-        }
-    }, {
-        key: 'addGame',
-        value: function addGame(game) {
-            this.list.push(game);
-        }
-
-        /**
-        * ToString for games.
-        * @method
-        */
-
-    }, {
-        key: 'toString',
-        value: function toString() {
-            return this.list.toString();
-        }
-    }]);
-
-    return Games;
-})();
-
-/**
- * A class to hold static utilities e.g. for arrays
+ * Thomas sorts a list of games according to user input.
  * @class
  */
-
-var Utilities = (function () {
-    function Utilities() {
-        _classCallCheck(this, Utilities);
-    }
-
-    _createClass(Utilities, null, [{
-        key: 'flattenArray',
-
-        /**
-         * Move all items from nested arrays to the top-level array.
-         * @method
-         * @param {array} list - The array to flatten.
-         */
-        value: function flattenArray(list) {
-            return list.reduce(function (a, b) {
-                return a.concat(Array.isArray(b) ? Utilities.flattenArray(b) : b);
-            }, []);
-        }
-
-        /**
-         * Remove all duplicate items from an array.
-         * @method
-         * @param {array} list - The array from which to remove duplicates.
-         */
-
-    }, {
-        key: 'uniqueArray',
-        value: function uniqueArray(list) {
-            return list.filter(function (value, index) {
-                return list.indexOf(value) === index;
-            });
-        }
-    }]);
-
-    return Utilities;
-})();
-
-/**
- * A matchup of two games.
- * @class
- * @param {string} winner - The winner of the matchup.
- * @param {string} loser - The loser of the matchup.
- */
-
-var Matchup = (function () {
-    function Matchup(winner, loser) {
-        _classCallCheck(this, Matchup);
-
-        this.winner = winner;
-        this.loser = loser;
-    }
-
-    /**
-    * ToString for a matchup.
-    * @method
-    */
-
-    _createClass(Matchup, [{
-        key: 'toString',
-        value: function toString() {
-            return this.winner + '>' + this.loser;
-        }
-    }]);
-
-    return Matchup;
-})();
-
-/**
- * A collection of matchups.
- * @class
- */
-
-var Matchups = (function () {
-    function Matchups() {
-        _classCallCheck(this, Matchups);
-
-        this.list = [];
-    }
-
-    _createClass(Matchups, [{
-        key: 'add',
-        value: function add(matchup) {
-            this.list.push(matchup);
-        }
-
-        //todo: pass in list as parameter
-
-    }, {
-        key: 'getAllRankedLower',
-        value: function getAllRankedLower(id) {
-            var _this = this;
-
-            var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
-
-            var losers = this.list.map(function (item) {
-                return item.winner === id ? item.loser : undefined;
-            }).filter(function (item) {
-                return item;
-            });
-
-            if (losers.length == 0) {
-                return includeId ? [id] : [];
-            } else {
-                var children = losers.map(function (item) {
-                    return _this.getAllRankedLower(item, true);
-                });
-
-                losers = losers.concat(Utilities.flattenArray(children));
-
-                if (includeId) losers.push(id);
-
-                return Utilities.uniqueArray(losers);
-            }
-        }
-
-        //todo: pass in list as parameter
-
-    }, {
-        key: 'getAllRankedHigher',
-        value: function getAllRankedHigher(id) {
-            var _this2 = this;
-
-            var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
-
-            var winners = this.list.map(function (item) {
-                return item.loser === id ? item.winner : undefined;
-            }).filter(function (item) {
-                return item;
-            });
-
-            if (winners.length == 0) {
-                return includeId ? [id] : [];
-            } else {
-                var parents = winners.map(function (item) {
-                    return _this2.getAllRankedHigher(item, true);
-                });
-
-                winners = winners.concat(Utilities.flattenArray(parents));
-
-                if (includeId) winners.push(id);
-
-                return Utilities.uniqueArray(winners);
-            }
-        }
-    }, {
-        key: 'isRanked',
-        value: function isRanked(gameId1, gameId2) {
-            var higher = this.getAllRankedHigher(gameId1);
-            var lower = this.getAllRankedLower(gameId1);
-            var all = [].concat(_toConsumableArray(higher), _toConsumableArray(lower));
-
-            return all.indexOf(gameId2) > -1;
-        }
-
-        /**
-        * ToString for matchups.
-        * @method
-        */
-
-    }, {
-        key: 'toString',
-        value: function toString() {
-            return this.list.toString();
-        }
-    }]);
-
-    return Matchups;
-})();
 
 var Thomas = (function () {
     function Thomas() {
         _classCallCheck(this, Thomas);
 
-        this.games_object = new Games([]);
+        this.games = new Games([]);
         this.process_pipeline = new Array();
         this.process_running = false;
     }
@@ -563,11 +592,11 @@ var Thomas = (function () {
 
     }, {
         key: 'addGame',
-        value: function addGame(game_name) {
+        value: function addGame(name) {
             var _this3 = this;
 
             this._push_pipeline(function () {
-                _this3.games_object.addGame(new Game(_this3.games_object.list.length, -1, game_name));
+                _this3.games.add(new Game(_this3.games.list.length, -1, name));
                 _this3._run_pipeline();
             });
             return this;
@@ -594,7 +623,7 @@ var Thomas = (function () {
                                 for (var i = 0; i < games.length; i++) {
                                     // console.log('Thomas: Loaded ' + games[i]);
                                     console.log(_this4);
-                                    _this4.games_object.addGame(new Game(_this4.games_object.list.length, -1, games[i]));
+                                    _this4.games.add(new Game(_this4.games.list.length, -1, games[i]));
                                 }
                             } catch (err) {
                                 console.warn('Thomas: Error parsing games from file!');
@@ -627,7 +656,7 @@ var Thomas = (function () {
             var _this5 = this;
 
             this._push_pipeline(function () {
-                console.log(_this5.games_object.toString());
+                console.log(_this5.games.toString());
                 _this5._run_pipeline();
             });
             return this;
@@ -636,7 +665,7 @@ var Thomas = (function () {
         key: 'getComparison',
         value: function getComparison() {
             // NOT async
-            var fc = this.games_object.getFlickchartMatchup();
+            var fc = this.games.getFlickchartComparison();
             if (!fc.isNull) {
                 return fc;
             } else {
@@ -649,18 +678,18 @@ var Thomas = (function () {
             var _this6 = this;
 
             this._push_pipeline(function () {
-                var comp = _this6.getComparison();
-                if (comp !== undefined && comp.game1 !== undefined && comp.game2 !== undefined) {
+                var comparison = _this6.getComparison();
+                if (comparison !== undefined && comparison.game1 !== undefined && comparison.game2 !== undefined) {
                     _this6.promptUser('Which game do you prefer?', [{
-                        text: comp.game1.name,
+                        text: comparison.game1.name,
                         click: function click() {
-                            _this6.setComparison(comp, 1);
+                            _this6.setComparison(comparison, 1);
                             _this6._run_pipeline();
                         }
                     }, {
-                        text: comp.game2.name,
+                        text: comparison.game2.name,
                         click: function click() {
-                            _this6.setComparison(comp, 2);
+                            _this6.setComparison(comparison, 2);
                             _this6._run_pipeline();
                         }
                     }]);
@@ -711,7 +740,7 @@ var Thomas = (function () {
             // NOT async
             if (selection == 1 || selection == 2) {
                 comparison.winnerIndex = selection;
-                this.games_object.setFlickchartMatchup(comparison);
+                this.games.setFlickchartComparison(comparison);
             } else {
                 console.warn('Thomas: Selection must be either 1 or 2.');
             }
@@ -722,26 +751,52 @@ var Thomas = (function () {
     return Thomas;
 })();
 
-/**************************************************************
-    METHODS
-**************************************************************/
+/**
+ * A class to hold static utilities e.g. for arrays
+ * @class
+ */
 
-var getGames = function getGames() {
-    // todo: get user input
-
-    var games = [];
-    var i, j;
-
-    for (i = 1, j = 10; i <= 10; i++, j--) {
-        games.push(new Game(i, j));
+var Utilities = (function () {
+    function Utilities() {
+        _classCallCheck(this, Utilities);
     }
 
-    return games;
-};
+    _createClass(Utilities, null, [{
+        key: 'flattenArray',
+
+        /**
+         * Move all items from nested arrays to the top-level array.
+         * @method
+         * @param {array} list - The array to flatten.
+         */
+        value: function flattenArray(list) {
+            return list.reduce(function (a, b) {
+                return a.concat(Array.isArray(b) ? Utilities.flattenArray(b) : b);
+            }, []);
+        }
+
+        /**
+         * Remove all duplicate items from an array.
+         * @method
+         * @param {array} list - The array from which to remove duplicates.
+         */
+
+    }, {
+        key: 'uniqueArray',
+        value: function uniqueArray(list) {
+            return list.filter(function (value, index) {
+                return list.indexOf(value) === index;
+            });
+        }
+    }]);
+
+    return Utilities;
+})();
 
 /**************************************************************
     TEMP MAIN
 **************************************************************/
+
 var test = new Thomas();
 
 var runTests = function runTests() {
