@@ -10,7 +10,7 @@
  * @param {string} game2Index - The index of the second game.
  * @param {string} winner - The index of the winner of the matchup.
  */
-class Battle {
+class Comparison {
     constructor (game1, game2, game1Index, game2Index, winner) {
         this.game1 = game1;
         this.game2 = game2;
@@ -38,7 +38,7 @@ class Game {
         this.wins = 0;
         this.losses = 0;
         this.locked = false;
-        this.rankedThisIteration = false;
+        this.comparedThisIteration = false;
     }
     
     differential () {
@@ -64,7 +64,7 @@ class GamesUtilities {
      * @param {game} game2 - The second game to compare by position.
      * @returns 
      */
-    static compareGames (game1, game2) {
+    static compareGamesPosition (game1, game2) {
         return game1.position - game2.position;
     }
     
@@ -76,10 +76,10 @@ class GamesUtilities {
         return games.forEach((element, index, list) => GamesUtilities.lockGame(list, index));
     }
     
-    static lockCompletelySortedGames (games, matchups) {
+    static lockCompletelySortedGames (games, comparisons) {
         for(let i = 0; i < games.length; i++)
         {
-            const gamesRankedLowerCount = matchups.getAllRankedLower(games[i].id).length;
+            const gamesRankedLowerCount = comparisons.getAllRankedLower(games[i].id).length;
             const gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
@@ -91,7 +91,7 @@ class GamesUtilities {
         
         for(let i = games.length - 1; i >= 0; i--)
         {
-            const gamesRankedHigherCount = matchups.getAllRankedHigher(games[i].id).length;
+            const gamesRankedHigherCount = comparisons.getAllRankedHigher(games[i].id).length;
             const gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
@@ -111,30 +111,30 @@ class GamesUtilities {
         return games;
     }
     
-    static logMatchup (matchups, winner, loser) {
-        var match = new Matchup(winner, loser);
-        matchups.add(match);
-        return matchups;
+    static logComparison (comparisons, winner, loser) {
+        var comparison = new ComparisonResult(winner, loser);
+        comparisons.add(comparison);
+        return comparisons;
     }
     
-    static rankGames (list, game_matchups, gameIndex1, gameIndex2, isFirstBetter) {        
-        if(isFirstBetter) {
+    static rankGames (list, comparisons, gameIndex1, gameIndex2, winnerIndex) {
+        if(winnerIndex == 1) {
             list[gameIndex1].wins += 1;
             list[gameIndex2].losses += 1;
-            game_matchups = GamesUtilities.logMatchup(game_matchups, list[gameIndex1].id, list[gameIndex2].id);
+            comparisons = GamesUtilities.logMatchup(comparisons, list[gameIndex1].id, list[gameIndex2].id);
             list = GamesUtilities.reposition(list, gameIndex1, gameIndex2);
         } else {
             list[gameIndex1].losses += 1;
             list[gameIndex2].wins += 1;
-            game_matchups = GamesUtilities.logMatchup(game_matchups, list[gameIndex2].id, list[gameIndex1].id);
+            comparisons = GamesUtilities.logMatchup(comparisons, list[gameIndex2].id, list[gameIndex1].id);
             list = GamesUtilities.reposition(list, gameIndex2, gameIndex1);
         }
         
-        list[gameIndex1].rankedThisIteration = true;
-        list[gameIndex2].rankedThisIteration = true;
-        list = GamesUtilities.lockCompletelySortedGames(list, game_matchups);
+        list[gameIndex1].comparedThisIteration = true;
+        list[gameIndex2].comparedThisIteration = true;
+        list = GamesUtilities.lockCompletelySortedGames(list, comparisons);
         
-        return {list, game_matchups};
+        return {list, comparisons};
     }
     
     static reposition (games, winnerIndex, loserIndex) {
@@ -148,9 +148,9 @@ class GamesUtilities {
             
             if(winner.differential() > 0) {
                 let newPosition = winner.position - winner.differential();
-                const gamesRankedAboveWinner = getAllRankedHigher(winner.id);
+                const gamesRankedAboveWinner = games.getAllRankedHigher(winner.id);
                 
-                for(let i = winnerPosition  - 1; i >= newPosition; i--) {
+                for(let i = winnerPosition - 1; i >= newPosition; i--) {
                     if(games[i].locked || gamesRankedAboveWinner.indexOf(games[i].id) > -1) {
                         newPosition = i + 1;
                         break;
@@ -165,7 +165,7 @@ class GamesUtilities {
             if(loser.differential() < 0)
             {
                 let newPosition = loser.position - loser.differential();
-                const gamesRankedBelowLoser = getAllRankedLower(loser.id);
+                const gamesRankedBelowLoser = games.getAllRankedLower(loser.id);
                 
                 for(let i = loserPosition + 1; i <= newPosition; i++) {
                     if(games[i].locked || gamesRankedBelowLoser.indexOf(games[i].id) > -1) {
@@ -193,7 +193,7 @@ class GamesUtilities {
     static unlockAll (games) {
         for (let i = 0; i < games.length; i++) {
             games[i].locked = false;
-            games[i].rankedThisIteration = false;
+            games[i].comparedThisIteration = false;
         }
         return games;
     }
@@ -216,82 +216,88 @@ class GamesUtilities {
 class Games {
     constructor (list) {
         this.list = list;
-        this.game_matchups = new Matchups();
+        this.comparisons = new Comparisons();
     }
     
-    doesMatchupRemain () {
-        return this.list.filter(game => !game.rankedThisIteration && !game.locked).length >= 2;
+    doesComparisonRemain () {
+        return this.list.filter(game => !game.comparedThisIteration && !game.locked).length >= 2;
     }
     
-    getFlickchartMatchup () {
+    getFlickchartComparison () {
         // If there's only one game to sort, it is already sorted
         if (this.list.length <= 1) {
             this.list = GamesUtilities.lockAll(this.list);
         } else {
-            if (!this.doesMatchupRemain()) {
+            if (!this.doesComparisonRemain()) {
                 // All games have been visited at least once, start over
                 this.list = GamesUtilities.unlockAll(this.list);
             }
-            if (this.doesMatchupRemain()) {
-                const game1 = this.getFirstNotLockedOrRanked();
+            if (this.doesComparisonRemain()) {
+                const game1 = this.getFirstNotLockedOrCompared();
                 const game1Index = this.list.indexOf(game1);
-                const game2 = this.getOpponent(this.list, game1, this.game_matchups);
+                const game2 = this.getOpponent(this.list, game1, this.comparisons);
                 const game2Index = this.list.indexOf(game2);
                 
-                return new Battle(game1, game2, game1Index, game2Index);
+                return new Comparison(game1, game2, game1Index, game2Index);
             }
         }
         
-        return new Battle();
+        return new Comparison();
     }
     
-    setFlickchartMatchup (battleResult) {
-        const {list, game_matchups} = GamesUtilities.rankGames(
+    setFlickchartComparison (comparison) {
+        const {list, comparisons} = GamesUtilities.rankGames(
             this.list, 
-            this.game_matchups, 
-            battleResult.game1Index, 
-            battleResult.game2Index, 
-            battleResult.winnerIndex);
+            this.comparisons, 
+            comparison.ComparisonResult, 
+            comparison.game2Index, 
+            comparison.winnerIndex);
         this.list = list;
-        this.game_matchups = game_matchups;
+        this.comparisons = comparisons;
         this.sortList();
         
-        console.log(this.game_matchups.toString());
+        console.log(this.comparisons.toString());
     }
     
-    getFirstNotLockedOrRanked () {
-        return this.list.find(game => !game.locked && !game.rankedThisIteration);
+    getFirstNotLockedOrCompared () {
+        return this.list.find(game => !game.locked && !game.comparedThisIteration);
     }
     
-    getOpponent (games, game1, matchups) {
+    // todo: refactor game2 search to be DRY
+    getOpponent (games, game1, comparisons) {
         var game2 = games.find(game => 
-          !game.locked && 
-          !game.rankedThisIteration && 
-          game.id !== game1.id && 
-          !matchups.isRanked(game1.id, game.id)
+            !game.locked && 
+            !game.comparedThisIteration && 
+            game.id !== game1.id && 
+            !comparisons.haveBeenCompared(game1.id, game.id)
         );
         
         if (game2 === undefined) {
-            game2 = games.find(game => !game.locked && game.id !== game1.id && !matchups.isRanked(game1.id, game.id));
+            game2 = games.find(game => !game.locked && 
+                game.id !== game1.id && 
+                !comparisons.haveBeenCompared(game1.id, game.id)
+            );
         }
         
-        // If game2 is still undefined, then all possible matchups have been evaluated
+        // If game2 is still undefined, then all possible comparisons have been evaluated
         if (game2 === undefined) {
-            console.warn('Thomas: All possible matchups have been evaluated by the user.');
+            console.warn('Thomas: All possible comparisons have been compared by the user.');
+            // todo: does this need to be handled somehow?
         }
                 
         return game2;
     }
     
+    // todo: implement quicksort to complement flickchart sort
     quickSort () {
         
     }
     
     sortList () {
-        this.list.sort(GamesUtilities.compareGames);
+        this.list.sort(GamesUtilities.compareGamesPosition);
     }
     
-    addGame (game) {
+    add (game) {
         this.list.push(game);
     }
     
@@ -335,12 +341,12 @@ class Utilities {
 
 
 /**
- * A matchup of two games.
+ * The result of comparing two games.
  * @class
- * @param {string} winner - The winner of the matchup.
- * @param {string} loser - The loser of the matchup.
+ * @param {string} winner - The winner of the comparison.
+ * @param {string} loser - The loser of the comparison.
  */
-class Matchup {
+class ComparisonResult {
     constructor (winner, loser) {
         this.winner = winner;
         this.loser = loser;
@@ -358,16 +364,16 @@ class Matchup {
 
 
 /**
- * A collection of matchups.
+ * A collection of comparisons.
  * @class
  */
-class Matchups {
+class Comparisons {
     constructor () {
         this.list = [];
     }
 
-    add (matchup) {
-        this.list.push(matchup);
+    add (comparison) {
+        this.list.push(comparison);
     }
     
     //todo: pass in list as parameter
@@ -406,7 +412,7 @@ class Matchups {
         }
     }
     
-    isRanked (gameId1, gameId2) {
+    haveBeenCompared (gameId1, gameId2) {
         const higher = this.getAllRankedHigher(gameId1);
         const lower = this.getAllRankedLower(gameId1);
         const all = [...higher, ...lower];
@@ -427,7 +433,7 @@ class Matchups {
 
 class Thomas {
     constructor () {
-        this.games_object = new Games([]);
+        this.games = new Games([]);
         this.process_pipeline = new Array();
         this.process_running = false;
     }
@@ -451,9 +457,9 @@ class Thomas {
     }
     
     // public
-    addGame (game_name) {
+    addGame (name) {
         this._push_pipeline( () => {
-            this.games_object.addGame(new Game(this.games_object.list.length, -1, game_name));
+            this.games.add(new Game(this.games.list.length, -1, name));
             this._run_pipeline();
         });
         return this;
@@ -477,7 +483,7 @@ class Thomas {
                             for (var i = 0; i < games.length; i++) {
                                 // console.log('Thomas: Loaded ' + games[i]);
                                 console.log(this);
-                                this.games_object.addGame(new Game(this.games_object.list.length, -1, games[i]));
+                                this.games.add(new Game(this.games.list.length, -1, games[i]));
                             }
                         } catch (err) {
                             console.warn('Thomas: Error parsing games from file!');
@@ -504,7 +510,7 @@ class Thomas {
         
     debug () {
         this._push_pipeline( () => {
-            console.log(this.games_object.toString());
+            console.log(this.games.toString());
             this._run_pipeline();
         });
         return this;
@@ -512,7 +518,7 @@ class Thomas {
     
     getComparison () {
         // NOT async
-        const fc = this.games_object.getFlickchartMatchup();
+        const fc = this.games.getFlickchartComparison();
         if (!fc.isNull) {
             return fc;
         } else {
@@ -522,20 +528,20 @@ class Thomas {
     
     promptComparison () {
         this._push_pipeline( () => {
-            const comp = this.getComparison();
-            if (comp !== undefined && comp.game1 !== undefined && comp.game2 !== undefined) {
+            const comparison = this.getComparison();
+            if (comparison !== undefined && comparison.game1 !== undefined && comparison.game2 !== undefined) {
                 this.promptUser('Which game do you prefer?', [ 
                     { 
-                        text: comp.game1.name, 
+                        text: comparison.game1.name, 
                         click: () => { 
-                            this.setComparison(comp, 1);
+                            this.setComparison(comparison, 1);
                             this._run_pipeline(); 
                         } 
                     }, 
                     { 
-                        text: comp.game2.name, 
+                        text: comparison.game2.name, 
                         click: () => { 
-                            this.setComparison(comp, 2);
+                            this.setComparison(comparison, 2);
                             this._run_pipeline(); 
                         } 
                     } 
@@ -589,30 +595,12 @@ class Thomas {
         // NOT async
         if (selection == 1 || selection == 2) {
             comparison.winnerIndex = selection;
-            this.games_object.setFlickchartMatchup(comparison);
+            this.games.setFlickchartComparison(comparison);
         } else {
             console.warn('Thomas: Selection must be either 1 or 2.')
         }
         return this;
     }
-}
-
-
-
-/**************************************************************
-    METHODS
-**************************************************************/
-var getGames = function() {
-    // todo: get user input
-    
-    var games = [];
-    var i, j;
-    
-    for(i = 1, j = 10; i <= 10; i++, j--) {
-        games.push(new Game(i, j));
-    }
-    
-    return games;
 }
 
 
