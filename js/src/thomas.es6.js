@@ -57,9 +57,9 @@ class Comparisons {
     }
 
     /**
-     * Adds a comparison to the internal list.
+     * Add a comparison to the internal list.
      * @method
-     * @param {Comparison} comparison - A Comparison
+     * @param {object} comparison - A Comparison object
      */
     add (comparison) {
         this.list.push(comparison);
@@ -120,7 +120,7 @@ class Comparisons {
     }
     
     /**
-     * Checks if two games have been compared. Comparisons are commutative, 
+     * Check if two games have been compared. Comparisons are commutative, 
      * so if e.g. game1 won a comparison against game2 and game2 won against game3,
      * game1 and game3 would be considered to have been compared. 
      * @method
@@ -203,17 +203,26 @@ class Games {
     /**
      * Add a Game to the internal Games collection.
      * @method
-     * @param {game} game - The game to add to the internal Games collection.
+     * @param {object} game - The Game object to add to the internal Games collection.
      */
     add (game) {
         this.list.push(game);
     }
     
-    
+    /**
+     * Check if at least two unlocked, un-compared (this iteration) games exist.
+     * @method
+     * @returns {boolean} True if a comparison remains, else false
+     */
     doesComparisonRemain () {
         return this.list.filter(game => !game.comparedThisIteration && !game.locked).length >= 2;
     }
     
+    /**
+     * Get the next two games for the Thomas to compare.
+     * @method
+     * @returns {object} Comparison object
+     */
     getFlickchartComparison () {
         // If there's only one game to sort, it is already sorted
         if (this.list.length <= 1) {
@@ -236,11 +245,26 @@ class Games {
         return new Comparison();
     }
     
+    /**
+     * Get the first Game (positionally) that hasn't been locked or compared this iteration.
+     * @method
+     * @return {object} The Game object to add to the internal Games collection.
+     */
     getFirstNotLockedOrCompared () {
         return this.list.find(game => !game.locked && !game.comparedThisIteration);
     }
     
     // todo: refactor game2 search to be DRY
+    /**
+     * Get a game to be compared to a provided game. The returned game should not be locked, 
+     * already compared to the provided game, the provided game itself, and (if possible) not 
+     * already compared this iteration.
+     * @method
+     * @param {array} games - The list of games that need to be compared.
+     * @param {object} game1 - The game object to find a comparison for.
+     * @param {object} comparisons - The Comparisons object where Comparisons are stored.
+     * @return {object} The Game object to compare to the provided Game.
+     */
     getOpponent (games, game1, comparisons) {
         var game2 = games.find(game => 
             !game.locked && 
@@ -270,6 +294,11 @@ class Games {
         
     }
     
+    /**
+     * Save a comparison and re-sort the Games list.
+     * @method
+     * @param {object} comparison - The Comparison object containing the comparison to save.
+     */
     setFlickchartComparison (comparison) {
         const {list, comparisons} = GamesUtilities.rankGames(
             this.list, 
@@ -284,6 +313,10 @@ class Games {
         console.log(this.comparisons.toString());
     }
     
+    /**
+     * Sort the internal Game list by position.
+     * @method
+     */
     sortList () {
         this.list.sort(GamesUtilities.compareGamesPosition);
     }
@@ -308,22 +341,44 @@ class GamesUtilities {
     /**
      * Compare the positions of two games.
      * @method
-     * @param {game} game1 - The first game to compare by position.
-     * @param {game} game2 - The second game to compare by position.
-     * @returns 
+     * @param {object} game1 - The first Game object to compare by position.
+     * @param {object} game2 - The second Game object to compare by position.
+     * @returns Positive integer if game 1 has a higher position than game 2.
+     * Negative integer if game 1 has a lower position than game 2. 
+     * 0 if both games have the same position (which should never happen).
      */
     static compareGamesPosition (game1, game2) {
         return game1.position - game2.position;
     }
     
+    /**
+     * Get all unlocked games from a list of Games. 
+     * @method
+     * @param {array} games - A list of Game objects.
+     * @return {array} The Games from the that are unlocked.
+     */
     static getUnlockedGames (games) {
         return games.filter(game => !game.locked);
     }
     
+    /**
+     * Lock all Games in a list of Games. 
+     * @method
+     * @param {array} games - A list of Game objects.
+     * @return {array} The Games provided, locked..
+     */
     static lockAll (games) {
         return games.forEach((element, index, list) => GamesUtilities.lockGame(list, index));
     }
     
+    /**
+     * Finds all Games that are completely sorted and locks them. A Game is completely sorted if it 
+     * has directly or indirectly been compared to all other Games in a list. 
+     * @method
+     * @param {array} games - A list of Games.
+     * @param {object} comparison - A Comparisons object.
+     * @return {array} The Games list, with completely sorted Games locked.
+     */
     static lockCompletelySortedGames (games, comparisons) {
         for(let i = 0; i < games.length; i++)
         {
@@ -352,6 +407,13 @@ class GamesUtilities {
         return games;
     }
     
+    /**
+     * Lock a game. Locked games are completely sorted; their position is fixed. 
+     * @method
+     * @param {array} games - A list of Games.
+     * @param {int} index - The index of the Game in the list of Games to be locked.
+     * @return {array} The list of Games with the Game locked at the provided index.
+     */
     static lockGame (games, index) {
         var gameToLock = games[index];
         gameToLock.locked = true;
@@ -359,6 +421,14 @@ class GamesUtilities {
         return games;
     }
     
+    /**
+     * Create a new Comparison from a winner and loser and save it in a list of Comparisons. 
+     * @method
+     * @param {array} comparisons - The list of Comparisons.
+     * @param {object} winner - The Game object that won the comparison. 
+     * @param {object} loser - The Game object that lost the comparison.
+     * @return {array} The list of Comparisons including the new Comparison.
+     */
     static logComparison (comparisons, winner, loser) {
         var comparison = new ComparisonResult(winner, loser);
         comparisons.add(comparison);
@@ -461,6 +531,8 @@ class GamesUtilities {
  * @class
  */
 class Thomas {
+    // todo: add options parameter
+    // todo: add option for defining sort type (flickchart, quicksort)
     constructor () {
         this.games = new Games([]);
         this.process_pipeline = new Array();
@@ -630,6 +702,16 @@ class Thomas {
         }
         return this;
     }
+    
+    // todo: implement sortCompletely()
+    // sortCompletely() {
+    //     promptUser().then( (response) => {
+    //         saveResponse(response);
+    //         updateDisplay();
+    //         
+    //         if(!isSorted()) setTimeout(sortCompletely, 0);
+    //     })
+    // }
 }
 
 
