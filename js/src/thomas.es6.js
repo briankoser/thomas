@@ -302,29 +302,29 @@ class Games {
      * @param {int} selection - 1 if game 1 won the comparison, 2 if game 2 won the comparison.
      */
     setFlickchartComparison (comparison, selection) {
-        var list = this.list;
+        var games = this.list;
         var comparisons = this.comparisons;
                 
         var winnerIndex = comparison === 1 ? comparison.game1Index : comparison.game2Index;
         var loserIndex = winnerIndex === 1 ? 2 : 1;
         
-        list[winnerIndex] = GameUtilities.incrementWins(list[winnerIndex]);
-        list[loserIndex] = GameUtilities.incrementLosses(list[loserIndex]);
+        games[winnerIndex] = GameUtilities.incrementWins(games[winnerIndex]);
+        games[loserIndex] = GameUtilities.incrementLosses(games[loserIndex]);
         
-        var comparisonResult = new ComparisonResult(list[winnerIndex].id, list[loserIndex].id);
+        var comparisonResult = new ComparisonResult(games[winnerIndex].id, games[loserIndex].id);
         comparison.result = comparisonResult;
         comparisons.add(comparison);
         
-        list[comparison.game1Index].comparedThisIteration = true;
-        list[comparison.game2Index].comparedThisIteration = true;
+        games[comparison.game1Index].comparedThisIteration = true;
+        games[comparison.game2Index].comparedThisIteration = true;
         
-        list = GamesUtilities.reposition(list, winnerIndex, loserIndex);
-        list = GamesUtilities.sortList(list);
-        list = GamesUtilities.lockCompletelySortedGames(list, comparisons);
+        games = GamesUtilities.reposition(games, winnerIndex, loserIndex);
+        games = GamesUtilities.sortGames(games);
+        games = GamesUtilities.lockCompletelySortedGames(games, comparisons);
         
         console.log(comparisons.toString());
         
-        this.list = list;
+        this.list = games;
         this.comparisons = comparisons;
     }
     
@@ -512,13 +512,13 @@ class GamesUtilities {
     }
     
     /**
-     * Sort the internal Game list by position.
+     * Sort the the Games by position.
      * @method
-     * @param {array} list - List of Games to sort by position.
+     * @param {array} games - List of Games to sort by position.
      * @return {array} Sorted list of Games.
      */
-    static sortList (list) {
-        return list.sort(GamesUtilities.compareGamesPosition);
+    static sortGames (games) {
+        return games.sort(GamesUtilities.compareGamesPosition);
     }
     
     static unlockAll (games) {
