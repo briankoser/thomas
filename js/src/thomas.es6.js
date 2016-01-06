@@ -233,14 +233,20 @@ class GameUtilities {
     /**
      * Lock a game. Locked games are completely sorted; their position is fixed. 
      * @method
-     * @param {array} games - A list of Games.
-     * @return {array} The list of Games with the Game locked at the provided index.
+     * @param {object} game - A Game object to lock.
+     * @return {object} The Game object, locked.
      */
     static lockGame (game) {
         game.locked = true;
         return game;
     }
     
+    /**
+     * Unlock a game. Unlocked games can still be sorted. 
+     * @method
+     * @param {object} game - A Game object to unlock.
+     * @return {object} The Game object, unlocked.
+     */
     static unlockGame (game) {
         game.locked = false;
         return game;
@@ -354,6 +360,7 @@ class Games {
         
     }
     
+    /* todo: split into multiple functions? */
     /**
      * Save a comparison and re-sort the Games list.
      * @method
@@ -460,6 +467,21 @@ class GamesUtilities {
         return games;
     }
     
+    /**
+     * Repositions games after a comparison. If the winner is in a lower position than the loser, 
+     * the winner is moved to the loser's position and the loser and all games below are shifted
+     * down. If the winner is in a higher position, the winner and loser are moved according to
+     * their differentials (wins - losses). A winner with a positive differential will be moved
+     * up a number of positions equal to it's differential, as long as the new position doesn't
+     * violate previous comparison rankings. The loser with a negative differential will be 
+     * treated the same way, in reverse. This speeds up the sorting of games that are radically
+     * out of position, increasing a game's velocity the more wins or losses it has in a row.  
+     * @method
+     * @param {array} games - A list of Games.
+     * @param {int} winnerIndex - The index in games of the winning Game.
+     * @param {int} loserIndex - The index in games of the losing Game.
+     * @return {array} The Games list, with winner and loser repositioned.
+     */
     static reposition (games, winnerIndex, loserIndex) {
         const winnerPosition = games[winnerIndex].position;
         const loserPosition = games[loserIndex].position;
@@ -514,7 +536,7 @@ class GamesUtilities {
     }
     
     /**
-     * Sort the the Games by position.
+     * Sort the Games by position.
      * @method
      * @param {array} games - List of Games to sort by position.
      * @return {array} Sorted list of Games.
@@ -523,6 +545,12 @@ class GamesUtilities {
         return games.sort(GameUtilities.compareGamesPosition);
     }
     
+    /**
+     * Unlock all Games in a list.
+     * @method
+     * @param {array} games - List of Games to unlock.
+     * @return {array} Unlocked list of Games.
+     */
     static unlockAll (games) {
         for (let i = 0; i < games.length; i++) {
             games[i].locked = false;
