@@ -25,13 +25,13 @@ class Comparison {
 /**
  * The result of comparing two games.
  * @class
- * @param {int} winner - The winner of the comparison.
- * @param {int} loser - The loser of the comparison.
+ * @param {int} winnerId - The id of the winner of the comparison.
+ * @param {int} loserId - The id of the loser of the comparison.
  */
 class ComparisonResult {
-    constructor (winner, loser) {
-        this.winner = winner;
-        this.loser = loser;
+    constructor (winnerId, loserId) {
+        this.winnerId = winnerId;
+        this.loserId = loserId;
     }
     
     /**
@@ -40,7 +40,7 @@ class ComparisonResult {
     * @returns {string} string representation of a ComparisonResult
     */
     toString () {
-        return this.winner + '>' + this.loser;
+        return this.winnerId + '>' + this.loserId;
     }
 }
 
@@ -75,7 +75,8 @@ class Comparisons {
      * @returns {array} collection of games 
      */
     getAllRankedHigher (id, includeId = false) {
-        var winners = this.list.map(item => item.loser === id ? item.winner : undefined).filter(item => item);
+        var winners = this.list.map(item => item.result.loserId === id ? item.result.winnerId : undefined)
+            .filter(item => item);
         
         if (winners.length == 0) {
             return includeId ? [id] : [];
@@ -102,7 +103,8 @@ class Comparisons {
      * @returns {array} collection of games 
      */
     getAllRankedLower (id, includeId = false) {
-        var losers = this.list.map(item => item.winner === id ? item.loser : undefined).filter(item => item);
+        var losers = this.list.map(item => item.result.winnerId === id ? item.result.loserId : undefined)
+            .filter(item => item);
         
         if (losers.length == 0) {
             return includeId ? [id] : [];
@@ -309,7 +311,7 @@ class Games {
         list[winnerIndex] = GameUtilities.incrementWins(list[winnerIndex]);
         list[loserIndex] = GameUtilities.incrementLosses(list[loserIndex]);
         
-        var comparisonResult = new ComparisonResult(winnerIndex, loserIndex);
+        var comparisonResult = new ComparisonResult(list[winnerIndex].id, list[loserIndex].id);
         comparison.result = comparisonResult;
         comparisons.add(comparison);
         

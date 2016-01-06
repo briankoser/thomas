@@ -32,16 +32,16 @@ var Comparison = function Comparison(game1, game2, game1Index, game2Index) {
 /**
  * The result of comparing two games.
  * @class
- * @param {int} winner - The winner of the comparison.
- * @param {int} loser - The loser of the comparison.
+ * @param {int} winnerId - The id of the winner of the comparison.
+ * @param {int} loserId - The id of the loser of the comparison.
  */
 
 var ComparisonResult = (function () {
-    function ComparisonResult(winner, loser) {
+    function ComparisonResult(winnerId, loserId) {
         _classCallCheck(this, ComparisonResult);
 
-        this.winner = winner;
-        this.loser = loser;
+        this.winnerId = winnerId;
+        this.loserId = loserId;
     }
 
     /**
@@ -53,7 +53,7 @@ var ComparisonResult = (function () {
     _createClass(ComparisonResult, [{
         key: 'toString',
         value: function toString() {
-            return this.winner + '>' + this.loser;
+            return this.winnerId + '>' + this.loserId;
         }
     }]);
 
@@ -103,7 +103,7 @@ var Comparisons = (function () {
             var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
             var winners = this.list.map(function (item) {
-                return item.loser === id ? item.winner : undefined;
+                return item.result.loserId === id ? item.result.winnerId : undefined;
             }).filter(function (item) {
                 return item;
             });
@@ -142,7 +142,7 @@ var Comparisons = (function () {
             var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
             var losers = this.list.map(function (item) {
-                return item.winner === id ? item.loser : undefined;
+                return item.result.winnerId === id ? item.result.loserId : undefined;
             }).filter(function (item) {
                 return item;
             });
@@ -392,7 +392,7 @@ var Games = (function () {
             list[winnerIndex] = GameUtilities.incrementWins(list[winnerIndex]);
             list[loserIndex] = GameUtilities.incrementLosses(list[loserIndex]);
 
-            var comparisonResult = new ComparisonResult(winnerIndex, loserIndex);
+            var comparisonResult = new ComparisonResult(list[winnerIndex].id, list[loserIndex].id);
             comparison.result = comparisonResult;
             comparisons.add(comparison);
 
