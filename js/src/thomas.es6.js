@@ -85,7 +85,7 @@ class Comparisons {
             
             winners = winners.concat(Utilities.flattenArray(parents));
             
-            if(includeId)
+            if (includeId)
                 winners.push(id);
             
             return Utilities.uniqueArray(winners);
@@ -113,7 +113,7 @@ class Comparisons {
             
             losers = losers.concat(Utilities.flattenArray(children));
             
-            if(includeId)
+            if (includeId)
                 losers.push(id);
             
             return Utilities.uniqueArray(losers);
@@ -440,24 +440,24 @@ class GamesUtilities {
      * @return {array} The Games list, with completely sorted Games locked.
      */
     static lockCompletelySortedGames (games, comparisons) {
-        for(let i = 0; i < games.length; i++)
+        for (let i = 0; i < games.length; i++)
         {
             const gamesRankedLowerCount = comparisons.getAllRankedLower(games[i].id).length;
             const gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
             
-            if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
+            if (!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
                 games[i] = GameUtilities.lockGame(games[i]);
             } else {
                 break;
             }
         }
         
-        for(let i = games.length - 1; i >= 0; i--)
+        for (let i = games.length - 1; i >= 0; i--)
         {
             const gamesRankedHigherCount = comparisons.getAllRankedHigher(games[i].id).length;
             const gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
             
-            if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
+            if (!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
                 games[i] = GameUtilities.lockGame(games[i]);
             } else {
                 break;
@@ -487,16 +487,16 @@ class GamesUtilities {
         const loserPosition = games[loserIndex].position;
         
         // if winner is positioned above loser
-        if(winnerPosition < loserPosition) {
+        if (winnerPosition < loserPosition) {
             const winner = games[winnerIndex];
             const loser = games[loserIndex];
             
-            if(winner.differential() > 0) {
+            if (winner.differential() > 0) {
                 let newPosition = winner.position - winner.differential();
                 const gamesRankedAboveWinner = games.getAllRankedHigher(winner.id);
                 
-                for(let i = winnerPosition - 1; i >= newPosition; i--) {
-                    if(games[i].locked || gamesRankedAboveWinner.indexOf(games[i].id) > -1) {
+                for (let i = winnerPosition - 1; i >= newPosition; i--) {
+                    if (games[i].locked || gamesRankedAboveWinner.indexOf(games[i].id) > -1) {
                         newPosition = i + 1;
                         break;
                     } else {
@@ -507,13 +507,13 @@ class GamesUtilities {
                 games[winnerIndex].position = newPosition;
             }
             
-            if(loser.differential() < 0)
+            if (loser.differential() < 0)
             {
                 let newPosition = loser.position - loser.differential();
                 const gamesRankedBelowLoser = games.getAllRankedLower(loser.id);
                 
-                for(let i = loserPosition + 1; i <= newPosition; i++) {
-                    if(games[i].locked || gamesRankedBelowLoser.indexOf(games[i].id) > -1) {
+                for (let i = loserPosition + 1; i <= newPosition; i++) {
+                    if (games[i].locked || gamesRankedBelowLoser.indexOf(games[i].id) > -1) {
                         newPosition = i - 1;
                         break;
                     } else {
@@ -525,7 +525,7 @@ class GamesUtilities {
             }
         } else {
             games.map(item => {
-                if(item.position >= loserPosition && item.position < winnerPosition)
+                if (item.position >= loserPosition && item.position < winnerPosition)
                     item.position += 1;
             });
             
@@ -744,7 +744,7 @@ class Thomas {
     //         saveResponse(response);
     //         updateDisplay();
     //         
-    //         if(!isSorted()) setTimeout(sortCompletely, 0);
+    //         if (!isSorted()) setTimeout(sortCompletely, 0);
     //     })
     // }
 }
