@@ -250,6 +250,84 @@ var Game = (function () {
 })();
 
 /**
+ * Static utility methods for Games.
+ * @class
+ */
+
+var GameUtilities = (function () {
+    function GameUtilities() {
+        _classCallCheck(this, GameUtilities);
+    }
+
+    _createClass(GameUtilities, null, [{
+        key: 'compareGamesPosition',
+
+        /**
+         * Compare the positions of two games.
+         * @method
+         * @param {object} game1 - The first Game object to compare by position.
+         * @param {object} game2 - The second Game object to compare by position.
+         * @returns Positive integer if game 1 has a higher position than game 2.
+         * Negative integer if game 1 has a lower position than game 2. 
+         * 0 if both games have the same position (which should never happen).
+         */
+        value: function compareGamesPosition(game1, game2) {
+            return game1.position - game2.position;
+        }
+
+        /**
+         * Increment the losses counter of a Game. 
+         * @method
+         * @param {object} game - The Game to increment losses.
+         * @return {object} The updated Game.
+         */
+
+    }, {
+        key: 'incrementLosses',
+        value: function incrementLosses(game) {
+            game.losses -= 1;
+            return game;
+        }
+
+        /**
+         * Increment the wins counter of a Game. 
+         * @method
+         * @param {object} game - The Game to increment wins.
+         * @return {object} The updated Game.
+         */
+
+    }, {
+        key: 'incrementWins',
+        value: function incrementWins(game) {
+            game.wins -= 1;
+            return game;
+        }
+
+        /**
+         * Lock a game. Locked games are completely sorted; their position is fixed. 
+         * @method
+         * @param {array} games - A list of Games.
+         * @return {array} The list of Games with the Game locked at the provided index.
+         */
+
+    }, {
+        key: 'lockGame',
+        value: function lockGame(game) {
+            game.locked = true;
+            return game;
+        }
+    }, {
+        key: 'unlockGame',
+        value: function unlockGame(game) {
+            game.locked = false;
+            return game;
+        }
+    }]);
+
+    return GameUtilities;
+})();
+
+/**
  * A collection of games.
  * @class
  * @param {array} list - An array of games.
@@ -383,29 +461,29 @@ var Games = (function () {
     }, {
         key: 'setFlickchartComparison',
         value: function setFlickchartComparison(comparison, selection) {
-            var list = this.list;
+            var games = this.list;
             var comparisons = this.comparisons;
 
             var winnerIndex = comparison === 1 ? comparison.game1Index : comparison.game2Index;
             var loserIndex = winnerIndex === 1 ? 2 : 1;
 
-            list[winnerIndex] = GameUtilities.incrementWins(list[winnerIndex]);
-            list[loserIndex] = GameUtilities.incrementLosses(list[loserIndex]);
+            games[winnerIndex] = GameUtilities.incrementWins(games[winnerIndex]);
+            games[loserIndex] = GameUtilities.incrementLosses(games[loserIndex]);
 
-            var comparisonResult = new ComparisonResult(list[winnerIndex].id, list[loserIndex].id);
+            var comparisonResult = new ComparisonResult(games[winnerIndex].id, games[loserIndex].id);
             comparison.result = comparisonResult;
             comparisons.add(comparison);
 
-            list[comparison.game1Index].comparedThisIteration = true;
-            list[comparison.game2Index].comparedThisIteration = true;
+            games[comparison.game1Index].comparedThisIteration = true;
+            games[comparison.game2Index].comparedThisIteration = true;
 
-            list = GamesUtilities.reposition(list, winnerIndex, loserIndex);
-            list = GamesUtilities.sortList(list);
-            list = GamesUtilities.lockCompletelySortedGames(list, comparisons);
+            games = GamesUtilities.reposition(games, winnerIndex, loserIndex);
+            games = GamesUtilities.sortGames(games);
+            games = GamesUtilities.lockCompletelySortedGames(games, comparisons);
 
             console.log(comparisons.toString());
 
-            this.list = list;
+            this.list = games;
             this.comparisons = comparisons;
         }
 
@@ -430,78 +508,20 @@ var Games = (function () {
  * @class
  */
 
-var GameUtilities = (function () {
-    function GameUtilities() {
-        _classCallCheck(this, GameUtilities);
-    }
-
-    _createClass(GameUtilities, null, [{
-        key: 'incrementLosses',
-
-        /**
-         * Increment the losses counter of a Game. 
-         * @method
-         * @param {object} game - The Game to increment losses.
-         * @return {object} The updated Game.
-         */
-        value: function incrementLosses(game) {
-            game.losses -= 1;
-            return game;
-        }
-
-        /**
-         * Increment the wins counter of a Game. 
-         * @method
-         * @param {object} game - The Game to increment wins.
-         * @return {object} The updated Game.
-         */
-
-    }, {
-        key: 'incrementWins',
-        value: function incrementWins(game) {
-            game.wins -= 1;
-            return game;
-        }
-    }]);
-
-    return GameUtilities;
-})();
-
-/**
- * Static utility methods for Games.
- * @class
- */
-
 var GamesUtilities = (function () {
     function GamesUtilities() {
         _classCallCheck(this, GamesUtilities);
     }
 
     _createClass(GamesUtilities, null, [{
-        key: 'compareGamesPosition',
-
-        /**
-         * Compare the positions of two games.
-         * @method
-         * @param {object} game1 - The first Game object to compare by position.
-         * @param {object} game2 - The second Game object to compare by position.
-         * @returns Positive integer if game 1 has a higher position than game 2.
-         * Negative integer if game 1 has a lower position than game 2. 
-         * 0 if both games have the same position (which should never happen).
-         */
-        value: function compareGamesPosition(game1, game2) {
-            return game1.position - game2.position;
-        }
+        key: 'getUnlockedGames',
 
         /**
          * Get all unlocked games from a list of Games. 
          * @method
          * @param {array} games - A list of Game objects.
-         * @return {array} The Games from the that are unlocked.
+         * @return {array} The Games that are unlocked.
          */
-
-    }, {
-        key: 'getUnlockedGames',
         value: function getUnlockedGames(games) {
             return games.filter(function (game) {
                 return !game.locked;
@@ -509,17 +529,17 @@ var GamesUtilities = (function () {
         }
 
         /**
-         * Lock all Games in a list of Games. 
+         * Lock every Game in a list of Games. 
          * @method
          * @param {array} games - A list of Game objects.
-         * @return {array} The Games provided, locked..
+         * @return {array} The Games provided, locked.
          */
 
     }, {
         key: 'lockAll',
         value: function lockAll(games) {
             return games.forEach(function (element, index, list) {
-                return GamesUtilities.lockGame(list, index);
+                return GameUtilities.lockGame(list[index]);
             });
         }
 
@@ -540,7 +560,7 @@ var GamesUtilities = (function () {
                 var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
 
                 if (!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
-                    games = GamesUtilities.lockGame(games, i);
+                    games[i] = GameUtilities.lockGame(games[i]);
                 } else {
                     break;
                 }
@@ -551,29 +571,12 @@ var GamesUtilities = (function () {
                 var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
 
                 if (!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
-                    games = GamesUtilities.lockGame(games, i);
+                    games[i] = GameUtilities.lockGame(games[i]);
                 } else {
                     break;
                 }
             }
 
-            return games;
-        }
-
-        /**
-         * Lock a game. Locked games are completely sorted; their position is fixed. 
-         * @method
-         * @param {array} games - A list of Games.
-         * @param {int} index - The index of the Game in the list of Games to be locked.
-         * @return {array} The list of Games with the Game locked at the provided index.
-         */
-
-    }, {
-        key: 'lockGame',
-        value: function lockGame(games, index) {
-            var gameToLock = games[index];
-            gameToLock.locked = true;
-            games[index] = gameToLock;
             return games;
         }
     }, {
@@ -630,16 +633,16 @@ var GamesUtilities = (function () {
         }
 
         /**
-         * Sort the internal Game list by position.
+         * Sort the the Games by position.
          * @method
-         * @param {array} list - List of Games to sort by position.
+         * @param {array} games - List of Games to sort by position.
          * @return {array} Sorted list of Games.
          */
 
     }, {
-        key: 'sortList',
-        value: function sortList(list) {
-            return list.sort(GamesUtilities.compareGamesPosition);
+        key: 'sortGames',
+        value: function sortGames(games) {
+            return games.sort(GameUtilities.compareGamesPosition);
         }
     }, {
         key: 'unlockAll',
@@ -648,14 +651,6 @@ var GamesUtilities = (function () {
                 games[i].locked = false;
                 games[i].comparedThisIteration = false;
             }
-            return games;
-        }
-    }, {
-        key: 'unlockGame',
-        value: function unlockGame(games, index) {
-            var gameToLock = games[index];
-            gameToLock.locked = false;
-            games[index] = gameToLock;
             return games;
         }
     }]);

@@ -191,6 +191,65 @@ class Game {
 
 
 /**
+ * Static utility methods for Games.
+ * @class
+ */
+class GameUtilities {
+    /**
+     * Compare the positions of two games.
+     * @method
+     * @param {object} game1 - The first Game object to compare by position.
+     * @param {object} game2 - The second Game object to compare by position.
+     * @returns Positive integer if game 1 has a higher position than game 2.
+     * Negative integer if game 1 has a lower position than game 2. 
+     * 0 if both games have the same position (which should never happen).
+     */
+    static compareGamesPosition (game1, game2) {
+        return game1.position - game2.position;
+    }
+    
+    /**
+     * Increment the losses counter of a Game. 
+     * @method
+     * @param {object} game - The Game to increment losses.
+     * @return {object} The updated Game.
+     */
+    static incrementLosses(game) {
+        game.losses -= 1;
+        return game;
+    }
+    
+    /**
+     * Increment the wins counter of a Game. 
+     * @method
+     * @param {object} game - The Game to increment wins.
+     * @return {object} The updated Game.
+     */
+    static incrementWins(game) {
+        game.wins -= 1;
+        return game;
+    }
+    
+    /**
+     * Lock a game. Locked games are completely sorted; their position is fixed. 
+     * @method
+     * @param {array} games - A list of Games.
+     * @return {array} The list of Games with the Game locked at the provided index.
+     */
+    static lockGame (game) {
+        game.locked = true;
+        return game;
+    }
+    
+    static unlockGame (game) {
+        game.locked = false;
+        return game;
+    }
+}
+
+
+
+/**
  * A collection of games.
  * @class
  * @param {array} list - An array of games.
@@ -344,68 +403,25 @@ class Games {
  * Static utility methods for Games.
  * @class
  */
-class GameUtilities {
-    /**
-     * Increment the losses counter of a Game. 
-     * @method
-     * @param {object} game - The Game to increment losses.
-     * @return {object} The updated Game.
-     */
-    static incrementLosses(game) {
-        game.losses -= 1;
-        return game;
-    }
-    
-    /**
-     * Increment the wins counter of a Game. 
-     * @method
-     * @param {object} game - The Game to increment wins.
-     * @return {object} The updated Game.
-     */
-    static incrementWins(game) {
-        game.wins -= 1;
-        return game;
-    }
-}
-
-
-
-/**
- * Static utility methods for Games.
- * @class
- */
 class GamesUtilities {
-    /**
-     * Compare the positions of two games.
-     * @method
-     * @param {object} game1 - The first Game object to compare by position.
-     * @param {object} game2 - The second Game object to compare by position.
-     * @returns Positive integer if game 1 has a higher position than game 2.
-     * Negative integer if game 1 has a lower position than game 2. 
-     * 0 if both games have the same position (which should never happen).
-     */
-    static compareGamesPosition (game1, game2) {
-        return game1.position - game2.position;
-    }
-    
     /**
      * Get all unlocked games from a list of Games. 
      * @method
      * @param {array} games - A list of Game objects.
-     * @return {array} The Games from the that are unlocked.
+     * @return {array} The Games that are unlocked.
      */
     static getUnlockedGames (games) {
         return games.filter(game => !game.locked);
     }
     
     /**
-     * Lock all Games in a list of Games. 
+     * Lock every Game in a list of Games. 
      * @method
      * @param {array} games - A list of Game objects.
-     * @return {array} The Games provided, locked..
+     * @return {array} The Games provided, locked.
      */
     static lockAll (games) {
-        return games.forEach((element, index, list) => GamesUtilities.lockGame(list, index));
+        return games.forEach((element, index, list) => GameUtilities.lockGame(list[index]));
     }
     
     /**
@@ -423,7 +439,7 @@ class GamesUtilities {
             const gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = GamesUtilities.lockGame(games, i);
+                games[i] = GameUtilities.lockGame(games[i]);
             } else {
                 break;
             }
@@ -435,26 +451,12 @@ class GamesUtilities {
             const gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
             
             if(!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
-                games = GamesUtilities.lockGame(games, i);
+                games[i] = GameUtilities.lockGame(games[i]);
             } else {
                 break;
             }
         }
         
-        return games;
-    }
-    
-    /**
-     * Lock a game. Locked games are completely sorted; their position is fixed. 
-     * @method
-     * @param {array} games - A list of Games.
-     * @param {int} index - The index of the Game in the list of Games to be locked.
-     * @return {array} The list of Games with the Game locked at the provided index.
-     */
-    static lockGame (games, index) {
-        var gameToLock = games[index];
-        gameToLock.locked = true;
-        games[index] = gameToLock;
         return games;
     }
     
@@ -518,7 +520,7 @@ class GamesUtilities {
      * @return {array} Sorted list of Games.
      */
     static sortGames (games) {
-        return games.sort(GamesUtilities.compareGamesPosition);
+        return games.sort(GameUtilities.compareGamesPosition);
     }
     
     static unlockAll (games) {
@@ -526,13 +528,6 @@ class GamesUtilities {
             games[i].locked = false;
             games[i].comparedThisIteration = false;
         }
-        return games;
-    }
-    
-    static unlockGame (games, index) {
-        var gameToLock = games[index];
-        gameToLock.locked = false;
-        games[index] = gameToLock;
         return games;
     }
 }
