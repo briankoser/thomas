@@ -16,33 +16,32 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @param {string} game2 - The second game.
  * @param {string} game1Index - The index of the first game.
  * @param {string} game2Index - The index of the second game.
- * @param {string} winner - The index of the winner of the matchup.
  */
 
-var Comparison = function Comparison(game1, game2, game1Index, game2Index, winner) {
+var Comparison = function Comparison(game1, game2, game1Index, game2Index) {
     _classCallCheck(this, Comparison);
 
     this.game1 = game1;
     this.game2 = game2;
     this.game1Index = game1Index;
     this.game2Index = game2Index;
-    this.winnerIndex = winner;
     this.isNull = game1 == undefined;
+    this.result = null;
 };
 
 /**
  * The result of comparing two games.
  * @class
- * @param {string} winner - The winner of the comparison.
- * @param {string} loser - The loser of the comparison.
+ * @param {int} winnerId - The id of the winner of the comparison.
+ * @param {int} loserId - The id of the loser of the comparison.
  */
 
 var ComparisonResult = (function () {
-    function ComparisonResult(winner, loser) {
+    function ComparisonResult(winnerId, loserId) {
         _classCallCheck(this, ComparisonResult);
 
-        this.winner = winner;
-        this.loser = loser;
+        this.winnerId = winnerId;
+        this.loserId = loserId;
     }
 
     /**
@@ -54,7 +53,7 @@ var ComparisonResult = (function () {
     _createClass(ComparisonResult, [{
         key: 'toString',
         value: function toString() {
-            return this.winner + '>' + this.loser;
+            return this.winnerId + '>' + this.loserId;
         }
     }]);
 
@@ -74,9 +73,9 @@ var Comparisons = (function () {
     }
 
     /**
-     * Adds a comparison to the internal list.
+     * Add a comparison to the internal list.
      * @method
-     * @param {Comparison} comparison - A Comparison
+     * @param {object} comparison - A Comparison object
      */
 
     _createClass(Comparisons, [{
@@ -104,7 +103,7 @@ var Comparisons = (function () {
             var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
             var winners = this.list.map(function (item) {
-                return item.loser === id ? item.winner : undefined;
+                return item.result.loserId === id ? item.result.winnerId : undefined;
             }).filter(function (item) {
                 return item;
             });
@@ -143,7 +142,7 @@ var Comparisons = (function () {
             var includeId = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
             var losers = this.list.map(function (item) {
-                return item.winner === id ? item.loser : undefined;
+                return item.result.winnerId === id ? item.result.loserId : undefined;
             }).filter(function (item) {
                 return item;
             });
@@ -164,7 +163,7 @@ var Comparisons = (function () {
         }
 
         /**
-         * Checks if two games have been compared. Comparisons are commutative, 
+         * Check if two games have been compared. Comparisons are commutative, 
          * so if e.g. game1 won a comparison against game2 and game2 won against game3,
          * game1 and game3 would be considered to have been compared. 
          * @method
@@ -251,6 +250,84 @@ var Game = (function () {
 })();
 
 /**
+ * Static utility methods for Games.
+ * @class
+ */
+
+var GameUtilities = (function () {
+    function GameUtilities() {
+        _classCallCheck(this, GameUtilities);
+    }
+
+    _createClass(GameUtilities, null, [{
+        key: 'compareGamesPosition',
+
+        /**
+         * Compare the positions of two games.
+         * @method
+         * @param {object} game1 - The first Game object to compare by position.
+         * @param {object} game2 - The second Game object to compare by position.
+         * @returns Positive integer if game 1 has a higher position than game 2.
+         * Negative integer if game 1 has a lower position than game 2. 
+         * 0 if both games have the same position (which should never happen).
+         */
+        value: function compareGamesPosition(game1, game2) {
+            return game1.position - game2.position;
+        }
+
+        /**
+         * Increment the losses counter of a Game. 
+         * @method
+         * @param {object} game - The Game to increment losses.
+         * @return {object} The updated Game.
+         */
+
+    }, {
+        key: 'incrementLosses',
+        value: function incrementLosses(game) {
+            game.losses -= 1;
+            return game;
+        }
+
+        /**
+         * Increment the wins counter of a Game. 
+         * @method
+         * @param {object} game - The Game to increment wins.
+         * @return {object} The updated Game.
+         */
+
+    }, {
+        key: 'incrementWins',
+        value: function incrementWins(game) {
+            game.wins -= 1;
+            return game;
+        }
+
+        /**
+         * Lock a game. Locked games are completely sorted; their position is fixed. 
+         * @method
+         * @param {array} games - A list of Games.
+         * @return {array} The list of Games with the Game locked at the provided index.
+         */
+
+    }, {
+        key: 'lockGame',
+        value: function lockGame(game) {
+            game.locked = true;
+            return game;
+        }
+    }, {
+        key: 'unlockGame',
+        value: function unlockGame(game) {
+            game.locked = false;
+            return game;
+        }
+    }]);
+
+    return GameUtilities;
+})();
+
+/**
  * A collection of games.
  * @class
  * @param {array} list - An array of games.
@@ -267,7 +344,7 @@ var Games = (function () {
     /**
      * Add a Game to the internal Games collection.
      * @method
-     * @param {game} game - The game to add to the internal Games collection.
+     * @param {object} game - The Game object to add to the internal Games collection.
      */
 
     _createClass(Games, [{
@@ -275,6 +352,13 @@ var Games = (function () {
         value: function add(game) {
             this.list.push(game);
         }
+
+        /**
+         * Check if at least two unlocked, un-compared (this iteration) games exist.
+         * @method
+         * @returns {boolean} True if a comparison remains, else false
+         */
+
     }, {
         key: 'doesComparisonRemain',
         value: function doesComparisonRemain() {
@@ -282,6 +366,13 @@ var Games = (function () {
                 return !game.comparedThisIteration && !game.locked;
             }).length >= 2;
         }
+
+        /**
+         * Get the next two games for the Thomas to compare.
+         * @method
+         * @returns {object} Comparison object
+         */
+
     }, {
         key: 'getFlickchartComparison',
         value: function getFlickchartComparison() {
@@ -305,6 +396,13 @@ var Games = (function () {
 
             return new Comparison();
         }
+
+        /**
+         * Get the first Game (positionally) that hasn't been locked or compared this iteration.
+         * @method
+         * @return {object} The Game object to add to the internal Games collection.
+         */
+
     }, {
         key: 'getFirstNotLockedOrCompared',
         value: function getFirstNotLockedOrCompared() {
@@ -314,6 +412,16 @@ var Games = (function () {
         }
 
         // todo: refactor game2 search to be DRY
+        /**
+         * Get a game to be compared to a provided game. The returned game should not be locked, 
+         * already compared to the provided game, the provided game itself, and (if possible) not 
+         * already compared this iteration.
+         * @method
+         * @param {array} games - The list of games that need to be compared.
+         * @param {object} game1 - The game object to find a comparison for.
+         * @param {object} comparisons - The Comparisons object where Comparisons are stored.
+         * @return {object} The Game object to compare to the provided Game.
+         */
 
     }, {
         key: 'getOpponent',
@@ -342,24 +450,41 @@ var Games = (function () {
     }, {
         key: 'quickSort',
         value: function quickSort() {}
+
+        /**
+         * Save a comparison and re-sort the Games list.
+         * @method
+         * @param {object} comparison - The Comparison object containing the comparison to save.
+         * @param {int} selection - 1 if game 1 won the comparison, 2 if game 2 won the comparison.
+         */
+
     }, {
         key: 'setFlickchartComparison',
-        value: function setFlickchartComparison(comparison) {
-            var _GamesUtilities$rankG = GamesUtilities.rankGames(this.list, this.comparisons, comparison.game1Index, comparison.game2Index, comparison.winnerIndex);
+        value: function setFlickchartComparison(comparison, selection) {
+            var games = this.list;
+            var comparisons = this.comparisons;
 
-            var list = _GamesUtilities$rankG.list;
-            var comparisons = _GamesUtilities$rankG.comparisons;
+            var winnerIndex = comparison === 1 ? comparison.game1Index : comparison.game2Index;
+            var loserIndex = winnerIndex === 1 ? 2 : 1;
 
-            this.list = list;
+            games[winnerIndex] = GameUtilities.incrementWins(games[winnerIndex]);
+            games[loserIndex] = GameUtilities.incrementLosses(games[loserIndex]);
+
+            var comparisonResult = new ComparisonResult(games[winnerIndex].id, games[loserIndex].id);
+            comparison.result = comparisonResult;
+            comparisons.add(comparison);
+
+            games[comparison.game1Index].comparedThisIteration = true;
+            games[comparison.game2Index].comparedThisIteration = true;
+
+            games = GamesUtilities.reposition(games, winnerIndex, loserIndex);
+            games = GamesUtilities.sortGames(games);
+            games = GamesUtilities.lockCompletelySortedGames(games, comparisons);
+
+            console.log(comparisons.toString());
+
+            this.list = games;
             this.comparisons = comparisons;
-            this.sortList();
-
-            console.log(this.comparisons.toString());
-        }
-    }, {
-        key: 'sortList',
-        value: function sortList() {
-            this.list.sort(GamesUtilities.compareGamesPosition);
         }
 
         /**
@@ -389,32 +514,44 @@ var GamesUtilities = (function () {
     }
 
     _createClass(GamesUtilities, null, [{
-        key: 'compareGamesPosition',
+        key: 'getUnlockedGames',
 
         /**
-         * Compare the positions of two games.
+         * Get all unlocked games from a list of Games. 
          * @method
-         * @param {game} game1 - The first game to compare by position.
-         * @param {game} game2 - The second game to compare by position.
-         * @returns 
+         * @param {array} games - A list of Game objects.
+         * @return {array} The Games that are unlocked.
          */
-        value: function compareGamesPosition(game1, game2) {
-            return game1.position - game2.position;
-        }
-    }, {
-        key: 'getUnlockedGames',
         value: function getUnlockedGames(games) {
             return games.filter(function (game) {
                 return !game.locked;
             });
         }
+
+        /**
+         * Lock every Game in a list of Games. 
+         * @method
+         * @param {array} games - A list of Game objects.
+         * @return {array} The Games provided, locked.
+         */
+
     }, {
         key: 'lockAll',
         value: function lockAll(games) {
             return games.forEach(function (element, index, list) {
-                return GamesUtilities.lockGame(list, index);
+                return GameUtilities.lockGame(list[index]);
             });
         }
+
+        /**
+         * Finds all Games that are completely sorted and locks them. A Game is completely sorted if it 
+         * has directly or indirectly been compared to all other Games in a list. 
+         * @method
+         * @param {array} games - A list of Games.
+         * @param {object} comparison - A Comparisons object.
+         * @return {array} The Games list, with completely sorted Games locked.
+         */
+
     }, {
         key: 'lockCompletelySortedGames',
         value: function lockCompletelySortedGames(games, comparisons) {
@@ -423,7 +560,7 @@ var GamesUtilities = (function () {
                 var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
 
                 if (!games[i].locked && gamesRankedLowerCount == gamesUnlockedExcludingCurrentGameCount) {
-                    games = GamesUtilities.lockGame(games, i);
+                    games[i] = GameUtilities.lockGame(games[i]);
                 } else {
                     break;
                 }
@@ -434,49 +571,13 @@ var GamesUtilities = (function () {
                 var gamesUnlockedExcludingCurrentGameCount = GamesUtilities.getUnlockedGames(games).length - 1;
 
                 if (!games[i].locked && gamesRankedHigherCount == gamesUnlockedExcludingCurrentGameCount) {
-                    games = GamesUtilities.lockGame(games, i);
+                    games[i] = GameUtilities.lockGame(games[i]);
                 } else {
                     break;
                 }
             }
 
             return games;
-        }
-    }, {
-        key: 'lockGame',
-        value: function lockGame(games, index) {
-            var gameToLock = games[index];
-            gameToLock.locked = true;
-            games[index] = gameToLock;
-            return games;
-        }
-    }, {
-        key: 'logComparison',
-        value: function logComparison(comparisons, winner, loser) {
-            var comparison = new ComparisonResult(winner, loser);
-            comparisons.add(comparison);
-            return comparisons;
-        }
-    }, {
-        key: 'rankGames',
-        value: function rankGames(list, comparisons, gameIndex1, gameIndex2, winnerIndex) {
-            if (winnerIndex == 1) {
-                list[gameIndex1].wins += 1;
-                list[gameIndex2].losses += 1;
-                comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex1].id, list[gameIndex2].id);
-                list = GamesUtilities.reposition(list, gameIndex1, gameIndex2);
-            } else {
-                list[gameIndex1].losses += 1;
-                list[gameIndex2].wins += 1;
-                comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex2].id, list[gameIndex1].id);
-                list = GamesUtilities.reposition(list, gameIndex2, gameIndex1);
-            }
-
-            list[gameIndex1].comparedThisIteration = true;
-            list[gameIndex2].comparedThisIteration = true;
-            list = GamesUtilities.lockCompletelySortedGames(list, comparisons);
-
-            return { list: list, comparisons: comparisons };
         }
     }, {
         key: 'reposition',
@@ -530,6 +631,19 @@ var GamesUtilities = (function () {
 
             return games;
         }
+
+        /**
+         * Sort the the Games by position.
+         * @method
+         * @param {array} games - List of Games to sort by position.
+         * @return {array} Sorted list of Games.
+         */
+
+    }, {
+        key: 'sortGames',
+        value: function sortGames(games) {
+            return games.sort(GameUtilities.compareGamesPosition);
+        }
     }, {
         key: 'unlockAll',
         value: function unlockAll(games) {
@@ -537,14 +651,6 @@ var GamesUtilities = (function () {
                 games[i].locked = false;
                 games[i].comparedThisIteration = false;
             }
-            return games;
-        }
-    }, {
-        key: 'unlockGame',
-        value: function unlockGame(games, index) {
-            var gameToLock = games[index];
-            gameToLock.locked = false;
-            games[index] = gameToLock;
             return games;
         }
     }]);
@@ -558,6 +664,9 @@ var GamesUtilities = (function () {
  */
 
 var Thomas = (function () {
+    // todo: add options parameter
+    // todo: add option for defining sort type (flickchart, quicksort)
+
     function Thomas() {
         _classCallCheck(this, Thomas);
 
@@ -738,14 +847,24 @@ var Thomas = (function () {
         key: 'setComparison',
         value: function setComparison(comparison, selection) {
             // NOT async
-            if (selection == 1 || selection == 2) {
-                comparison.winnerIndex = selection;
-                this.games.setFlickchartComparison(comparison);
+            if (selection === 1 || selection === 2) {
+                this.games.setFlickchartComparison(comparison, selection);
             } else {
                 console.warn('Thomas: Selection must be either 1 or 2.');
             }
             return this;
         }
+
+        // todo: implement sortCompletely()
+        // sortCompletely() {
+        //     promptUser().then( (response) => {
+        //         saveResponse(response);
+        //         updateDisplay();
+        //        
+        //         if(!isSorted()) setTimeout(sortCompletely, 0);
+        //     })
+        // }
+
     }]);
 
     return Thomas;
