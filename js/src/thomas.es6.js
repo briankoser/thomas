@@ -8,16 +8,15 @@
  * @param {string} game2 - The second game.
  * @param {string} game1Index - The index of the first game.
  * @param {string} game2Index - The index of the second game.
- * @param {string} winner - The index of the winner of the matchup.
  */
 class Comparison {
-    constructor (game1, game2, game1Index, game2Index, winner) {
+    constructor (game1, game2, game1Index, game2Index) {
         this.game1 = game1;
         this.game2 = game2;
         this.game1Index = game1Index;
         this.game2Index = game2Index;
-        this.winnerIndex = winner;
         this.isNull = game1 == undefined;
+        this.result = null;
     }
 }
 
@@ -26,8 +25,8 @@ class Comparison {
 /**
  * The result of comparing two games.
  * @class
- * @param {string} winner - The winner of the comparison.
- * @param {string} loser - The loser of the comparison.
+ * @param {int} winner - The winner of the comparison.
+ * @param {int} loser - The loser of the comparison.
  */
 class ComparisonResult {
     constructor (winner, loser) {
@@ -298,27 +297,33 @@ class Games {
      * Save a comparison and re-sort the Games list.
      * @method
      * @param {object} comparison - The Comparison object containing the comparison to save.
+     * @param {int} selection - 1 if game 1 won the comparison, 2 if game 2 won the comparison.
      */
-    setFlickchartComparison (comparison) {
-        const {list, comparisons} = GamesUtilities.rankGames(
-            this.list, 
-            this.comparisons, 
-            comparison.game1Index, 
-            comparison.game2Index, 
-            comparison.winnerIndex);
+    setFlickchartComparison (comparison, selection) {
+        var list = this.list;
+        var comparisons = this.comparisons;
+                
+        var winnerIndex = comparison === 1 ? comparison.game1Index : comparison.game2Index;
+        var loserIndex = winnerIndex === 1 ? 2 : 1;
+        
+        list[winnerIndex] = GameUtilities.incrementWins(list[winnerIndex]);
+        list[loserIndex] = GameUtilities.incrementLosses(list[loserIndex]);
+        
+        var comparisonResult = new ComparisonResult(winnerIndex, loserIndex);
+        comparison.result = comparisonResult;
+        comparisons.add(comparison);
+        
+        list[comparison.game1Index].comparedThisIteration = true;
+        list[comparison.game2Index].comparedThisIteration = true;
+        
+        list = GamesUtilities.reposition(list, winnerIndex, loserIndex);
+        list = GamesUtilities.sortList(list);
+        list = GamesUtilities.lockCompletelySortedGames(list, comparisons);
+        
+        console.log(comparisons.toString());
+        
         this.list = list;
         this.comparisons = comparisons;
-        this.sortList();
-        
-        console.log(this.comparisons.toString());
-    }
-    
-    /**
-     * Sort the internal Game list by position.
-     * @method
-     */
-    sortList () {
-        this.list.sort(GamesUtilities.compareGamesPosition);
     }
     
     /**
@@ -328,6 +333,36 @@ class Games {
     */
     toString () {
         return this.list.toString();
+    }
+}
+
+
+
+/**
+ * Static utility methods for Games.
+ * @class
+ */
+class GameUtilities {
+    /**
+     * Increment the losses counter of a Game. 
+     * @method
+     * @param {object} game - The Game to increment losses.
+     * @return {object} The updated Game.
+     */
+    static incrementLosses(game) {
+        game.losses -= 1;
+        return game;
+    }
+    
+    /**
+     * Increment the wins counter of a Game. 
+     * @method
+     * @param {object} game - The Game to increment wins.
+     * @return {object} The updated Game.
+     */
+    static incrementWins(game) {
+        game.wins -= 1;
+        return game;
     }
 }
 
@@ -421,40 +456,6 @@ class GamesUtilities {
         return games;
     }
     
-    /**
-     * Create a new Comparison from a winner and loser and save it in a list of Comparisons. 
-     * @method
-     * @param {array} comparisons - The list of Comparisons.
-     * @param {object} winner - The Game object that won the comparison. 
-     * @param {object} loser - The Game object that lost the comparison.
-     * @return {array} The list of Comparisons including the new Comparison.
-     */
-    static logComparison (comparisons, winner, loser) {
-        var comparison = new ComparisonResult(winner, loser);
-        comparisons.add(comparison);
-        return comparisons;
-    }
-    
-    static rankGames (list, comparisons, gameIndex1, gameIndex2, winnerIndex) {
-        if(winnerIndex == 1) {
-            list[gameIndex1].wins += 1;
-            list[gameIndex2].losses += 1;
-            comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex1].id, list[gameIndex2].id);
-            list = GamesUtilities.reposition(list, gameIndex1, gameIndex2);
-        } else {
-            list[gameIndex1].losses += 1;
-            list[gameIndex2].wins += 1;
-            comparisons = GamesUtilities.logComparison(comparisons, list[gameIndex2].id, list[gameIndex1].id);
-            list = GamesUtilities.reposition(list, gameIndex2, gameIndex1);
-        }
-        
-        list[gameIndex1].comparedThisIteration = true;
-        list[gameIndex2].comparedThisIteration = true;
-        list = GamesUtilities.lockCompletelySortedGames(list, comparisons);
-        
-        return {list, comparisons};
-    }
-    
     static reposition (games, winnerIndex, loserIndex) {
         const winnerPosition = games[winnerIndex].position;
         const loserPosition = games[loserIndex].position;
@@ -506,6 +507,16 @@ class GamesUtilities {
         }
         
         return games;
+    }
+    
+    /**
+     * Sort the internal Game list by position.
+     * @method
+     * @param {array} list - List of Games to sort by position.
+     * @return {array} Sorted list of Games.
+     */
+    static sortList (list) {
+        return list.sort(GamesUtilities.compareGamesPosition);
     }
     
     static unlockAll (games) {
@@ -694,9 +705,8 @@ class Thomas {
         
     setComparison (comparison, selection) {
         // NOT async
-        if (selection == 1 || selection == 2) {
-            comparison.winnerIndex = selection;
-            this.games.setFlickchartComparison(comparison);
+        if (selection === 1 || selection === 2) {
+            this.games.setFlickchartComparison(comparison, selection);
         } else {
             console.warn('Thomas: Selection must be either 1 or 2.')
         }
