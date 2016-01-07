@@ -432,7 +432,7 @@ class GamesUtilities {
     }
     
     /**
-     * Finds all Games that are completely sorted and locks them. A Game is completely sorted if it 
+     * Find all Games that are completely sorted and lock them. A Game is completely sorted if it 
      * has directly or indirectly been compared to all other Games in a list. 
      * @method
      * @param {array} games - A list of Games.
@@ -468,14 +468,15 @@ class GamesUtilities {
     }
     
     /**
-     * Repositions games after a comparison. If the winner is in a lower position than the loser, 
-     * the winner is moved to the loser's position and the loser and all games below are shifted
-     * down. If the winner is in a higher position, the winner and loser are moved according to
-     * their differentials (wins - losses). A winner with a positive differential will be moved
-     * up a number of positions equal to it's differential, as long as the new position doesn't
-     * violate previous comparison rankings. The loser with a negative differential will be 
-     * treated the same way, in reverse. This speeds up the sorting of games that are radically
-     * out of position, increasing a game's velocity the more wins or losses it has in a row.  
+     * Reposition games after a comparison. If the winner is in a lower position than the loser, 
+     * move the winner to the loser's position and shift the loser and all games below down. 
+     * If the winner is in a higher position, move the winner and loser according to their 
+     * differentials (wins - losses). Move a winner with a positive differential up a number of 
+     * positions equal to it's differential, as long as the new position doesn't violate 
+     * previous comparison rankings. Move a loser with a negative differential down a number of 
+     * positions equal to it's differential, as long as the new position doesn't violate 
+     * previous comparison rankings. This speeds up the sorting of games that are radically out 
+     * of position, increasing a game's velocity the more wins or losses it has in a row.  
      * @method
      * @param {array} games - A list of Games.
      * @param {int} winnerIndex - The index in games of the winning Game.
@@ -576,6 +577,11 @@ class Thomas {
     }
     
     // private
+    /**
+     * Add an action to the pipline, then run the pipeline.
+     * @method
+     * @param {function} action - An action function to add to the pipeline.
+     */
     _push_pipeline (action) {
         this.process_pipeline.push(action);
         if (!this.process_running) {
@@ -584,6 +590,10 @@ class Thomas {
         }
     }
     
+    /**
+     * If an action is present in the pipeline, run it.
+     * @method
+     */
     _run_pipeline () {
         if (this.process_pipeline.length) {
             // Dequeue and execute
@@ -594,6 +604,12 @@ class Thomas {
     }
     
     // public
+    /**
+     * Add a Game to the internal list of Games.
+     * @method
+     * @param {string} name - Name of the Game to add.
+     * @return {object} Returns current Thomas instance.
+     */
     addGame (name) {
         this._push_pipeline( () => {
             this.games.add(new Game(this.games.list.length, -1, name));
@@ -602,6 +618,11 @@ class Thomas {
         return this;
     }
     
+    /**
+     * Store games from a text file in the internal list of Games.
+     * @method
+     * @param {function} onLoadCallback - Function to run after games have been loaded.
+     */
     addGamesFromFile (onLoadCallback) {
         // This method MUST be called from the user context (e.g., click event) or nothing will happen.
         try {
@@ -641,10 +662,19 @@ class Thomas {
         }
     }
     
+    /**
+     * Close the Thomas prompt.
+     * @method
+     */
     closePrompt () {  
         document.getElementById('thomas-dialog').style.display = 'none';
     }
-        
+    
+    /**
+     * Print the internal Games list to the console.
+     * @method
+     * @return {object} Returns current Thomas instance.
+     */
     debug () {
         this._push_pipeline( () => {
             console.log(this.games.toString());
@@ -653,6 +683,11 @@ class Thomas {
         return this;
     }
     
+    /**
+     * Get a Comparison for the user.
+     * @method
+     * @returns {object} Comparison object
+     */
     getComparison () {
         // NOT async
         const fc = this.games.getFlickchartComparison();
@@ -663,6 +698,11 @@ class Thomas {
         }
     }
     
+    /**
+     * Get the user's input to compare two games.
+     * @method
+     * @return {object} Returns current Thomas instance.
+     */
     promptComparison () {
         this._push_pipeline( () => {
             const comparison = this.getComparison();
@@ -690,9 +730,12 @@ class Thomas {
         return this;
     }
     
-    // Prompt the user with a message and present multiple options.
-    // Message: the message to prompt the user
-    // Buttons: an array of object of the form { text: "link text", click: function() { /* action */ } }
+    /**
+     * Prompt the user with a message and present multiple options.
+     * @method
+     * @param {string} message - The message to prompt the user.
+     * @param {array} buttons - A list of objects of the form: { text: "link text", click: function() { *action* } }
+     */
     promptUser (message, buttons) {
         if (document.getElementById('thomas-dialog') != null) {
             let el = document.getElementById('thomas-dialog');
@@ -727,7 +770,14 @@ class Thomas {
             document.getElementById(buttons[i].buttonId).addEventListener('click', buttons[i].click);
         }
     }
-        
+    
+    /**
+     * Store comparison result.
+     * @method
+     * @param {object} comparison - Comparison object that user compared.
+     * @param {int} selection - 1 if user selected game 1, 2 if user selected game 2.
+     * @return {object} Returns current Thomas instance.
+     */
     setComparison (comparison, selection) {
         // NOT async
         if (selection === 1 || selection === 2) {
